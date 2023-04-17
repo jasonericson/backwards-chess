@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_opengl.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -9,12 +10,13 @@ int main(int argc, char* argv[])
     SDL_Window* win = SDL_CreateWindow("GAME",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        640, 640, 0);
+        640, 640, SDL_WINDOW_OPENGL);
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(win, -1, 0);
-    int r = 255;
-    int g = 0;
-    int b = 255;
+    SDL_GLContext context = SDL_GL_CreateContext(win);
+
+    float r = 1.0f;
+    float g = 0.0f;
+    float b = 1.0f;
 
     time_t t;
     srand((unsigned) time(&t));
@@ -31,15 +33,17 @@ int main(int argc, char* argv[])
             }
             else if (event.type == SDL_MOUSEBUTTONDOWN)
             {
-                r = rand() % 256;
-                g = rand() % 256;
-                b = rand() % 256;
+                r = (float)rand() / (float)(RAND_MAX);
+                g = (float)rand() / (float)(RAND_MAX);
+                b = (float)rand() / (float)(RAND_MAX);
             }
         }
-        
-        SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
+
+        glViewport(0, 0, 640, 640);
+        glClearColor(r, g, b, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        SDL_GL_SwapWindow(win);
     }
 
     SDL_Quit();

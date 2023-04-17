@@ -2,7 +2,7 @@
 # backwards-chess
 
 ## To compile with emscripten
-### First time
+### Update/Install
 ```
 cd emsdk
 ./emsdk install latest

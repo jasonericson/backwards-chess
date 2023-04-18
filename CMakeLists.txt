@@ -23,3 +23,5 @@ target_link_libraries(BackwardsChess
     PRIVATE ${OPENGL_LIBRARY})
 
 configure_file(${PROJECT_SOURCE_DIR}/pieces.png ${CMAKE_CURRENT_BINARY_DIR}/pieces.png COPYONLY)
+
+target_precompile_headers(BackwardsChess PRIVATE "main.h")

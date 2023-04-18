@@ -5,7 +5,7 @@ find_package(SDL2 REQUIRED)
 message(STATUS "Included SDL2 at ${SDL2_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 
-add_executable(BackwardsChess "main.cpp" "render.cpp" "render.h")
+add_executable(BackwardsChess "main.cpp" "render.cpp")
 
 if (EMSCRIPTEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ASSERTIONS=1 -s WASM=1 -s USE_WEBGL2=1 -s ASYNCIFY --shell-file ${PROJECT_SOURCE_DIR}/shell.html --preload-file ${PROJECT_SOURCE_DIR}/build/pieces.png")

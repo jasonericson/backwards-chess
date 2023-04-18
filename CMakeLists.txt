@@ -5,7 +5,7 @@ find_package(SDL2 REQUIRED)
 message(STATUS "Included SDL2 at ${SDL2_INCLUDE_DIRS}")
 find_package(OpenGL REQUIRED)
 
-add_executable(BackwardsChess "main.cpp")
+add_executable(BackwardsChess "main.cpp" "render.cpp" "render.h")
 
 if (EMSCRIPTEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ASSERTIONS=1 -s WASM=1 -s USE_WEBGL2=1 -s ASYNCIFY --shell-file ${PROJECT_SOURCE_DIR}/shell.html --preload-file ${PROJECT_SOURCE_DIR}/build/pieces.png")
@@ -21,3 +21,5 @@ target_link_libraries(BackwardsChess
     PRIVATE SDL2::SDL2
     PRIVATE SDL2::SDL2main
     PRIVATE ${OPENGL_LIBRARY})
+
+configure_file(${PROJECT_SOURCE_DIR}/pieces.png ${CMAKE_CURRENT_BINARY_DIR}/pieces.png COPYONLY)

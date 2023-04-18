@@ -150,15 +150,13 @@ int main(int argc, char* argv[])
     static short vertices[12];
     static float uvs[12];
 
-    int16 posX = 140;
-    int16 posY = 48;
     int16 texWidth = 16;
     int16 texHeight = 16;
 
     float u1 = 0.0f;
-    float u2 = 0.125f;
+    float u2 = 0.25f;
     float v1 = 0.0f;
-    float v2 = 0.125f;
+    float v2 = 0.25f;
 
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
@@ -201,23 +199,23 @@ int main(int argc, char* argv[])
             }
             else if (event.type == SDL_MOUSEBUTTONDOWN)
             {
-                if (u1 < .1f)
+                if (v1 < .1f)
                 {
-                    u1 = 0.125f;
-                    u2 = 0.25f;
+                    v1 = 0.5f;
+                    v2 = 0.75f;
                 }
                 else
                 {
-                    u1 = 0.0f;
-                    u2 = 0.125f;
+                    v1 = 0.0f;
+                    v2 = 0.25f;
                 }
             }
         }
 
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
-        posX = mouseX / 4;
-        posY = (640 - mouseY) / 4;
+        int posX = mouseX / 4;
+        int posY = (640 - mouseY) / 4;
 
         // top right
         vertices[0] = posX + texWidth;

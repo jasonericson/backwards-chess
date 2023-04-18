@@ -1,5 +1,7 @@
 #include "render.h"
 
+#include "sprite.h"
+
 #include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -12,8 +14,8 @@ GLint vertexLoc, uvLoc;
 
 SDL_Window* window;
 
-int16 vertices[12];
-float uvs[12];
+int16 vertices[12 * SPRITE_MAX];
+float uvs[12 * SPRITE_MAX];
 
 const char* vertexShader =
 #ifdef EMSCRIPTEN
@@ -168,15 +170,63 @@ void render_init()
 
 void render_update()
 {
+    for (int i = 0; i < sprites.count; ++i)
+    {
+        int offset = 12 * i;
+        Sprite* sprite = sprites.data + i;
+
+        // top right
+        vertices[offset + 0] = sprite->x + 16;
+        vertices[offset + 1] = sprite->y;
+
+        // bottom right
+        vertices[offset + 2] = sprite->x + 16;
+        vertices[offset + 3] = sprite->y + 16;
+
+        // top left
+        vertices[offset + 4] = sprite->x;
+        vertices[offset + 5] = sprite->y;
+
+        // bottom right
+        vertices[offset + 6] = sprite->x + 16;
+        vertices[offset + 7] = sprite->y + 16;
+
+        // bottom left
+        vertices[offset + 8] = sprite->x;
+        vertices[offset + 9] = sprite->y + 16;
+
+        // top left
+        vertices[offset + 10] = sprite->x;
+        vertices[offset + 11] = sprite->y;
+
+        uvs[offset + 0] = sprite->tex->u2;
+        uvs[offset + 1] = sprite->tex->v2;
+
+        uvs[offset + 2] = sprite->tex->u2;
+        uvs[offset + 3] = sprite->tex->v1;
+
+        uvs[offset + 4] = sprite->tex->u1;
+        uvs[offset + 5] = sprite->tex->v2;
+
+        uvs[offset + 6] = sprite->tex->u2;
+        uvs[offset + 7] = sprite->tex->v1;
+
+        uvs[offset + 8] = sprite->tex->u1;
+        uvs[offset + 9] = sprite->tex->v1;
+
+        uvs[offset + 10] = sprite->tex->u1;
+        uvs[offset + 11] = sprite->tex->v2;
+    }
+
     glViewport(0, 0, 640, 640);
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprites.count * 12, vertices);
     glBindBuffer(GL_ARRAY_BUFFER, ubo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(uvs), uvs);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprites.count * 12, uvs);
+    glDrawArrays(GL_TRIANGLES, 0, 6 * sprites.count);
 
     SDL_GL_SwapWindow(window);
 }

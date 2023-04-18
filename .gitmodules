@@ -1,3 +1,6 @@
 [submodule "emsdk"]
 	path = emsdk
 	url = git@github.com:emscripten-core/emsdk.git
+[submodule "lib/glew"]
+	path = lib/glew
+	url = git@github.com:Perlmint/glew-cmake.git

@@ -1,5 +1,5 @@
 #include <SDL.h>
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <SDL_opengl.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -13,11 +13,19 @@ typedef unsigned int    uint32;
 
 
 GLuint shaderProgramId, vao, vbo, ubo, textureId;
+GLint vertexLoc, uvLoc;
 
 const char* vertexShader =
+#ifdef EMSCRIPTEN
+    "#version 300 es\n"
+    "precision mediump float;\n"
+    "precision mediump int;\n"
+    "precision mediump sampler2DArray;\n"
+#else
     "#version 330\n"
-    "layout (location = 0) in vec2 vert;\n"
-    "layout (location = 1) in vec2 _uv;\n"
+#endif
+    "in vec2 vert;\n"
+    "in vec2 _uv;\n"
     "out vec2 uv;\n"
     "void main()\n"
     "{\n"
@@ -26,7 +34,14 @@ const char* vertexShader =
     "}\n";
 
 const char* fragmentShader =
+#ifdef EMSCRIPTEN
+    "#version 300 es\n"
+    "precision mediump float;\n"
+    "precision mediump int;\n"
+    "precision mediump sampler2DArray;\n"
+#else
     "#version 330\n"
+#endif
     "out vec4 color;\n"
     "in vec2 uv;\n"
     "uniform sampler2D tex;\n"
@@ -88,6 +103,12 @@ int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
 
+#ifdef EMSCRIPTEN
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0); //OpenGL 3.0
+#endif
+
     SDL_Window* win = SDL_CreateWindow("GAME",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
@@ -144,16 +165,19 @@ int main(int argc, char* argv[])
     glGenBuffers(1, &ubo);
     glBindVertexArray(vao);
 
+    vertexLoc = glGetAttribLocation(shaderProgramId, "vert");
+    uvLoc = glGetAttribLocation(shaderProgramId, "_uv");
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, 2 * sizeof(int16), 0);
+    glVertexAttribPointer(vertexLoc, 2, GL_SHORT, GL_FALSE, 2 * sizeof(int16), 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, ubo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_TRUE, 2 * sizeof(GLfloat), 0);
+    glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_TRUE, 2 * sizeof(GLfloat), 0);
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(vertexLoc);
+    glEnableVertexAttribArray(uvLoc);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -166,6 +190,8 @@ int main(int argc, char* argv[])
     bool quit = false;
     while (!quit)
     {
+        Uint64 start = SDL_GetPerformanceCounter();
+
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -246,6 +272,10 @@ int main(int argc, char* argv[])
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         SDL_GL_SwapWindow(win);
+
+        Uint64 end = SDL_GetPerformanceCounter();
+        double elapsedMs = ((end - start) / (double)SDL_GetPerformanceFrequency()) * 1000.0f;
+        SDL_Delay(floor(fmax((1000.0 / 60.0) - elapsedMs, 0.0)));
     }
 
     glDeleteVertexArrays(1, &vao);

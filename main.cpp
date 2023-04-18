@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
         posX = mouseX / 4;
-        posY = mouseY / 4;
+        posY = (640 - mouseY) / 4;
 
         // top right
         vertices[0] = posX + texWidth;

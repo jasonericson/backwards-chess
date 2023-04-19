@@ -23,11 +23,11 @@ Texture king_black_tex = Texture  { 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 18.0f 
 
 uint32 grid_sprites[8][8] = { 0 };
 
-enum Interaction
+enum Action
 {
-    None,
-    GrabPiece,
-    GridSquare,
+    Action_None,
+    Action_GrabPiece,
+    Action_GridSquare,
 };
 
 enum Piece
@@ -41,14 +41,24 @@ enum Piece
     King,
 };
 
+struct GridSquare
+{
+    Piece piece;
+    bool white;
+    uint32 piece_sprite;
+};
+
+GridSquare grid[8][8];
+
 struct ClickySquare
 {
     short x, y, width, height;
-    Interaction interaction;
+    Action action;
     Piece piece;
+    short gridCol, gridRow;
 };
 
-ClickySquare clicky_squares[6];
+ClickySquare clicky_squares[70];
 
 int main(int argc, char* argv[])
 {
@@ -85,12 +95,20 @@ int main(int argc, char* argv[])
     sprite_create(&rook_white_tex, piecePanelX, rookPanelY);
     sprite_create(&pawn_white_tex, piecePanelX, pawnPanelY);
 
-    clicky_squares[0] = ClickySquare{ piecePanelX, kingPanelY, 14, 14, Interaction::GrabPiece, Piece::King };
-    clicky_squares[1] = ClickySquare{ piecePanelX, queenPanelY, 14, 14, Interaction::GrabPiece, Piece::Queen };
-    clicky_squares[2] = ClickySquare{ piecePanelX, bishopPanelY, 14, 14, Interaction::GrabPiece, Piece::Bishop };
-    clicky_squares[3] = ClickySquare{ piecePanelX, knightPanelY, 14, 14, Interaction::GrabPiece, Piece::Knight };
-    clicky_squares[4] = ClickySquare{ piecePanelX, rookPanelY, 14, 14, Interaction::GrabPiece, Piece::Rook };
-    clicky_squares[5] = ClickySquare{ piecePanelX, pawnPanelY, 14, 14, Interaction::GrabPiece, Piece::Pawn };
+    clicky_squares[0] = ClickySquare{ piecePanelX, kingPanelY, 14, 14, Action::Action_GrabPiece, Piece::King };
+    clicky_squares[1] = ClickySquare{ piecePanelX, queenPanelY, 14, 14, Action::Action_GrabPiece, Piece::Queen };
+    clicky_squares[2] = ClickySquare{ piecePanelX, bishopPanelY, 14, 14, Action::Action_GrabPiece, Piece::Bishop };
+    clicky_squares[3] = ClickySquare{ piecePanelX, knightPanelY, 14, 14, Action::Action_GrabPiece, Piece::Knight };
+    clicky_squares[4] = ClickySquare{ piecePanelX, rookPanelY, 14, 14, Action::Action_GrabPiece, Piece::Rook };
+    clicky_squares[5] = ClickySquare{ piecePanelX, pawnPanelY, 14, 14, Action::Action_GrabPiece, Piece::Pawn };
+
+    for (short col = 0; col < 8; ++col)
+    {
+        for (short row = 0; row < 8; ++row)
+        {
+            clicky_squares[6 + (8 * col + row)] = ClickySquare{ gridPosX + col * 14, gridPosY + row * 14, 14, 14, Action::Action_GridSquare, Piece::Piece_None, col, row };
+        }
+    }
 
     Piece held_piece = Piece::Piece_None;
     uint32 held_sprite = 0;
@@ -120,7 +138,7 @@ int main(int argc, char* argv[])
         }
 
         bool hovering = false;
-        for (int i = 0; i < 6; ++i)
+        for (int i = 0; i < 70; ++i)
         {
             ClickySquare sq = clicky_squares[i];
             if (mouseX > sq.x && mouseX < sq.x + sq.width && mouseY > sq.y && mouseY < sq.y + sq.height)
@@ -129,9 +147,9 @@ int main(int argc, char* argv[])
                 SDL_SetCursor(hoverCursor);
                 if (mouseDown)
                 {
-                    switch (sq.interaction)
+                    switch (sq.action)
                     {
-                    case GrabPiece:
+                    case Action_GrabPiece:
                         if (held_piece != sq.piece)
                         {
                             Texture* piece_tex;
@@ -169,6 +187,17 @@ int main(int argc, char* argv[])
                                 held_sprite = sprite_create(piece_tex, mouseX, mouseY);
                                 held_piece = sq.piece;
                             }
+                        }
+                        break;
+                    case Action_GridSquare:
+                        if (held_piece != Piece_None && grid[sq.gridCol][sq.gridRow].piece == Piece_None)
+                        {
+                            grid[sq.gridCol][sq.gridRow].piece = held_piece;
+                            grid[sq.gridCol][sq.gridRow].piece_sprite = held_sprite;
+
+                            sprite_set_pos(held_sprite, gridPosX + sq.gridCol * 14, gridPosY + sq.gridRow * 14);
+                            held_piece = Piece_None;
+                            held_sprite = 0;
                         }
                         break;
                     default:

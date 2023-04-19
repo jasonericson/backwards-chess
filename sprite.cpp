@@ -35,3 +35,16 @@ void sprite_delete(uint32 id)
         }
     }
 }
+
+void sprite_set_pos(uint32 id, short x, short y)
+{
+    for (int i = 0; i < sprites.count; ++i)
+    {
+        if (sprites.data[i].id == id)
+        {
+            sprites.data[i].x = x;
+            sprites.data[i].y = y;
+            break;
+        }
+    }
+}

@@ -23,6 +23,33 @@ Texture king_black_tex = Texture  { 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 18.0f 
 
 uint32 grid_sprites[8][8] = { 0 };
 
+enum Interaction
+{
+    None,
+    GrabPiece,
+    GridSquare,
+};
+
+enum Piece
+{
+    Piece_None,
+    Pawn,
+    Rook,
+    Knight,
+    Bishop,
+    Queen,
+    King,
+};
+
+struct ClickySquare
+{
+    short x, y, width, height;
+    Interaction interaction;
+    Piece piece;
+};
+
+ClickySquare clicky_squares[6];
+
 int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
@@ -43,6 +70,31 @@ int main(int argc, char* argv[])
     short gridPosY = 160 - 112 - 8;
     sprite_create(&board_tex, gridPosX, gridPosY);
 
+    short piecePanelX = 4;
+    short kingPanelY = 160 - 4 - 14;
+    short queenPanelY = kingPanelY - 2 - 14;
+    short bishopPanelY = queenPanelY - 2 - 14;
+    short knightPanelY = bishopPanelY - 2 - 14;
+    short rookPanelY = knightPanelY - 2 - 14;
+    short pawnPanelY = rookPanelY - 2 - 14;
+
+    sprite_create(&king_white_tex, piecePanelX, kingPanelY);
+    sprite_create(&queen_white_tex, piecePanelX, queenPanelY);
+    sprite_create(&bishop_white_tex, piecePanelX, bishopPanelY);
+    sprite_create(&knight_white_tex, piecePanelX, knightPanelY);
+    sprite_create(&rook_white_tex, piecePanelX, rookPanelY);
+    sprite_create(&pawn_white_tex, piecePanelX, pawnPanelY);
+
+    clicky_squares[0] = ClickySquare{ piecePanelX, kingPanelY, 14, 14, Interaction::GrabPiece, Piece::King };
+    clicky_squares[1] = ClickySquare{ piecePanelX, queenPanelY, 14, 14, Interaction::GrabPiece, Piece::Queen };
+    clicky_squares[2] = ClickySquare{ piecePanelX, bishopPanelY, 14, 14, Interaction::GrabPiece, Piece::Bishop };
+    clicky_squares[3] = ClickySquare{ piecePanelX, knightPanelY, 14, 14, Interaction::GrabPiece, Piece::Knight };
+    clicky_squares[4] = ClickySquare{ piecePanelX, rookPanelY, 14, 14, Interaction::GrabPiece, Piece::Rook };
+    clicky_squares[5] = ClickySquare{ piecePanelX, pawnPanelY, 14, 14, Interaction::GrabPiece, Piece::Pawn };
+
+    Piece held_piece = Piece::Piece_None;
+    uint32 held_sprite = 0;
+
     bool quit = false;
     while (!quit)
     {
@@ -50,8 +102,8 @@ int main(int argc, char* argv[])
 
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
-        int posX = mouseX / 4;
-        int posY = (640 - mouseY) / 4;
+        mouseX = mouseX / 4;
+        mouseY = (640 - mouseY) / 4;
 
         bool mouseDown = false;
         SDL_Event event;
@@ -67,71 +119,75 @@ int main(int argc, char* argv[])
             }
         }
 
-        short gridMousePosX = posX - gridPosX;
-        short gridMousePosY = posY - gridPosY;
-        if (gridMousePosX > 0 && gridMousePosX < 112 && gridMousePosY > 0 && gridMousePosY < 112)
+        bool hovering = false;
+        for (int i = 0; i < 6; ++i)
         {
-            SDL_SetCursor(hoverCursor);
-            if (mouseDown)
+            ClickySquare sq = clicky_squares[i];
+            if (mouseX > sq.x && mouseX < sq.x + sq.width && mouseY > sq.y && mouseY < sq.y + sq.height)
             {
-                short gridCol = gridMousePosX / 14;
-                short gridRow = gridMousePosY / 14;
-                short gridSquarePosX = gridCol * 14 + gridPosX;
-                short gridSquarePosY = gridRow * 14 + gridPosY;
-
-                if (grid_sprites[gridCol][gridRow] != 0)
+                hovering = true;
+                SDL_SetCursor(hoverCursor);
+                if (mouseDown)
                 {
-                    sprite_delete(grid_sprites[gridCol][gridRow]);
+                    switch (sq.interaction)
+                    {
+                    case GrabPiece:
+                        if (held_piece != sq.piece)
+                        {
+                            Texture* piece_tex;
+                            switch (sq.piece)
+                            {
+                            case Piece::Pawn:
+                                piece_tex = &pawn_white_tex;
+                                break;
+                            case Piece::Rook:
+                                piece_tex = &rook_white_tex;
+                                break;
+                            case Piece::Knight:
+                                piece_tex = &knight_white_tex;
+                                break;
+                            case Piece::Bishop:
+                                piece_tex = &bishop_white_tex;
+                                break;
+                            case Piece::Queen:
+                                piece_tex = &queen_white_tex;
+                                break;
+                            case Piece::King:
+                                piece_tex = &king_white_tex;
+                                break;
+                            default:
+                                piece_tex = nullptr;
+                                break;
+                            }
+
+                            if (piece_tex != nullptr)
+                            {
+                                if (held_sprite != 0)
+                                {
+                                    sprite_delete(held_sprite);
+                                }
+                                held_sprite = sprite_create(piece_tex, mouseX, mouseY);
+                                held_piece = sq.piece;
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                    }
                 }
 
-                Texture* tex;
-                int rand_index = rand() % 12;
-                switch (rand_index)
-                {
-                case 0:
-                    tex = &pawn_white_tex;
-                    break;
-                case 1:
-                    tex = &pawn_black_tex;
-                    break;
-                case 2:
-                    tex = &rook_white_tex;
-                    break;
-                case 3:
-                    tex = &rook_black_tex;
-                    break;
-                case 4:
-                    tex = &knight_white_tex;
-                    break;
-                case 5:
-                    tex = &knight_black_tex;
-                    break;
-                case 6:
-                    tex = &bishop_white_tex;
-                    break;
-                case 7:
-                    tex = &bishop_black_tex;
-                    break;
-                case 8:
-                    tex = &queen_white_tex;
-                    break;
-                case 9:
-                    tex = &queen_black_tex;
-                    break;
-                case 10:
-                    tex = &king_white_tex;
-                    break;
-                default:
-                    tex = &king_black_tex;
-                    break;
-                }
+                break;
+            }
 
-                grid_sprites[gridCol][gridRow] = sprite_create(tex, gridSquarePosX, gridSquarePosY);
+            if (!hovering)
+            {
+                SDL_SetCursor(SDL_GetDefaultCursor());
             }
         }
-        else
+
+        if (held_sprite != 0)
         {
-            SDL_SetCursor(SDL_GetDefaultCursor());
+            sprite_set_pos(held_sprite, mouseX - 7, mouseY - 7);
         }
 
         render_update();

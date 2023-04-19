@@ -31,3 +31,4 @@ extern SpriteArray sprites;
 void sprite_init();
 uint32 sprite_create(Texture* tex, short x, short y);
 void sprite_delete(uint32 id);
+void sprite_set_pos(uint32 id, short x, short y);

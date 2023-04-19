@@ -6,24 +6,24 @@
 
 struct Texture
 {
-	short width, height;
-	float u1, u2, v1, v2;
+    short width, height;
+    float u1, u2, v1, v2;
 };
 
 struct Sprite
 {
-	uint32 id;
-	short x, y;
-	Texture* tex;
-	Uint64 timeCreated;
+    uint32 id;
+    short x, y;
+    Texture* tex;
+    Uint64 timeCreated;
 };
 
 const int SPRITE_MAX = 128;
 
 struct SpriteArray
 {
-	Sprite data[SPRITE_MAX];
-	int count;
+    Sprite data[SPRITE_MAX];
+    int count;
 };
 
 extern SpriteArray sprites;

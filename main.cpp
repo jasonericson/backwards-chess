@@ -7,19 +7,19 @@
 #include <stdlib.h>
 #include <time.h>
 
-Texture board_tex = Texture{ 128, 128, 0.5f, 0.625, 0.375f, 0.5f };
-Texture pawn_white_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.5f, 0.75f };
-Texture pawn_black_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.0f, 0.25f };
-Texture rook_white_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.5f, 0.75f };
-Texture rook_black_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.0f, 0.25f };
-Texture knight_white_tex = Texture{ 16, 16, 0.5f, 0.75f, 0.5f, 0.75f };
-Texture knight_black_tex = Texture{ 16, 16, 0.5f, 0.75f, 0.0f, 0.25f };
-Texture bishop_white_tex = Texture{ 16, 16, 0.75f, 1.0f, 0.5f, 0.75f };
-Texture bishop_black_tex = Texture{ 16, 16, 0.75f, 1.0f, 0.0f, 0.25f };
-Texture queen_white_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.75f, 1.0f };
-Texture queen_black_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.25f, 0.5f };
-Texture king_white_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.75f, 1.0f };
-Texture king_black_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.25f, 0.5f };
+Texture board_tex = Texture{ 112, 112, 0.5f, 0.625, 0.375f, 0.5f };
+Texture pawn_white_tex = Texture  { 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 34.0f / 64.0f, 0.75f };
+Texture pawn_black_tex = Texture  { 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 2.0f / 64.0f, 0.25f };
+Texture rook_white_tex = Texture  { 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 34.0f / 64.0f, 0.75f };
+Texture rook_black_tex = Texture  { 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 2.0f / 64.0f, 0.25f };
+Texture knight_white_tex = Texture{ 14, 14, 33.0f / 64.0f, 47.0f / 64.0f, 34.0f / 64.0f, 0.75f };
+Texture knight_black_tex = Texture{ 14, 14, 33.0f / 64.0f, 47.0f / 64.0f, 2.0f / 64.0f, 0.25f };
+Texture bishop_white_tex = Texture{ 14, 14, 49.0f / 64.0f, 63.0f / 64.0f, 34.0f / 64.0f, 0.75f };
+Texture bishop_black_tex = Texture{ 14, 14, 49.0f / 64.0f, 63.0f / 64.0f, 2.0f / 64.0f, 0.25f };
+Texture queen_white_tex = Texture { 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 50.0f / 64.0f, 1.0f };
+Texture queen_black_tex = Texture { 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 18.0f / 64.0f, 0.5f };
+Texture king_white_tex = Texture  { 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 50.0f / 64.0f, 1.0f };
+Texture king_black_tex = Texture  { 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 18.0f / 64.0f, 0.5f };
 
 uint32 grid_sprites[8][8] = { 0 };
 
@@ -39,7 +39,9 @@ int main(int argc, char* argv[])
 
     SDL_Cursor* hoverCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 
-    sprite_create(&board_tex, 16, 16);
+    short gridPosX = 160 - 112 - 8;
+    short gridPosY = 160 - 112 - 8;
+    sprite_create(&board_tex, gridPosX, gridPosY);
 
     bool quit = false;
     while (!quit)
@@ -65,17 +67,17 @@ int main(int argc, char* argv[])
             }
         }
 
-        short gridMousePosX = posX - 16;
-        short gridMousePosY = posY - 16;
-        if (gridMousePosX > 0 && gridMousePosX < 128 && gridMousePosY > 0 && gridMousePosY < 128)
+        short gridMousePosX = posX - gridPosX;
+        short gridMousePosY = posY - gridPosY;
+        if (gridMousePosX > 0 && gridMousePosX < 112 && gridMousePosY > 0 && gridMousePosY < 112)
         {
             SDL_SetCursor(hoverCursor);
             if (mouseDown)
             {
-                short gridCol = gridMousePosX / 16;
-                short gridRow = gridMousePosY / 16;
-                short gridPosX = gridCol * 16 + 16;
-                short gridPosY = gridRow * 16 + 16;
+                short gridCol = gridMousePosX / 14;
+                short gridRow = gridMousePosY / 14;
+                short gridSquarePosX = gridCol * 14 + gridPosX;
+                short gridSquarePosY = gridRow * 14 + gridPosY;
 
                 if (grid_sprites[gridCol][gridRow] != 0)
                 {
@@ -124,7 +126,7 @@ int main(int argc, char* argv[])
                     break;
                 }
 
-                grid_sprites[gridCol][gridRow] = sprite_create(tex, gridPosX, gridPosY);
+                grid_sprites[gridCol][gridRow] = sprite_create(tex, gridSquarePosX, gridSquarePosY);
             }
         }
         else

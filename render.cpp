@@ -176,24 +176,24 @@ void render_update()
         Sprite* sprite = sprites.data + i;
 
         // top right
-        vertices[offset + 0] = sprite->x + 16;
+        vertices[offset + 0] = sprite->x + sprite->tex->width;
         vertices[offset + 1] = sprite->y;
 
         // bottom right
-        vertices[offset + 2] = sprite->x + 16;
-        vertices[offset + 3] = sprite->y + 16;
+        vertices[offset + 2] = sprite->x + sprite->tex->width;
+        vertices[offset + 3] = sprite->y + sprite->tex->height;
 
         // top left
         vertices[offset + 4] = sprite->x;
         vertices[offset + 5] = sprite->y;
 
         // bottom right
-        vertices[offset + 6] = sprite->x + 16;
-        vertices[offset + 7] = sprite->y + 16;
+        vertices[offset + 6] = sprite->x + sprite->tex->width;
+        vertices[offset + 7] = sprite->y + sprite->tex->height;
 
         // bottom left
         vertices[offset + 8] = sprite->x;
-        vertices[offset + 9] = sprite->y + 16;
+        vertices[offset + 9] = sprite->y + sprite->tex->height;
 
         // top left
         vertices[offset + 10] = sprite->x;

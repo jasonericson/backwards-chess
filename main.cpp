@@ -7,18 +7,19 @@
 #include <stdlib.h>
 #include <time.h>
 
-Texture pawn_white_tex = Texture{ 0.0f, 0.25f, 0.5f, 0.75f };
-Texture pawn_black_tex = Texture{ 0.0f, 0.25f, 0.0f, 0.25f };
-Texture rook_white_tex = Texture{ 0.25f, 0.5f, 0.5f, 0.75f };
-Texture rook_black_tex = Texture{ 0.25f, 0.5f, 0.0f, 0.25f };
-Texture knight_white_tex = Texture{ 0.5f, 0.75f, 0.5f, 0.75f };
-Texture knight_black_tex = Texture{ 0.5f, 0.75f, 0.0f, 0.25f };
-Texture bishop_white_tex = Texture{ 0.75f, 1.0f, 0.5f, 0.75f };
-Texture bishop_black_tex = Texture{ 0.75f, 1.0f, 0.0f, 0.25f };
-Texture queen_white_tex = Texture{ 0.0f, 0.25f, 0.75f, 1.0f };
-Texture queen_black_tex = Texture{ 0.0f, 0.25f, 0.25f, 0.5f };
-Texture king_white_tex = Texture{ 0.25f, 0.5f, 0.75f, 1.0f };
-Texture king_black_tex = Texture{ 0.25f, 0.5f, 0.25f, 0.5f };
+Texture board_tex = Texture{ 128, 128, 0.5f, 0.625, 0.375f, 0.5f };
+Texture pawn_white_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.5f, 0.75f };
+Texture pawn_black_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.0f, 0.25f };
+Texture rook_white_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.5f, 0.75f };
+Texture rook_black_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.0f, 0.25f };
+Texture knight_white_tex = Texture{ 16, 16, 0.5f, 0.75f, 0.5f, 0.75f };
+Texture knight_black_tex = Texture{ 16, 16, 0.5f, 0.75f, 0.0f, 0.25f };
+Texture bishop_white_tex = Texture{ 16, 16, 0.75f, 1.0f, 0.5f, 0.75f };
+Texture bishop_black_tex = Texture{ 16, 16, 0.75f, 1.0f, 0.0f, 0.25f };
+Texture queen_white_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.75f, 1.0f };
+Texture queen_black_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.25f, 0.5f };
+Texture king_white_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.75f, 1.0f };
+Texture king_black_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.25f, 0.5f };
 
 int main(int argc, char* argv[])
 {
@@ -39,6 +40,8 @@ int main(int argc, char* argv[])
 
     bool white = true;
     Texture curr_tex = king_white_tex;
+
+    sprite_create(&board_tex, 16, 16);
 
     bool quit = false;
     while (!quit)

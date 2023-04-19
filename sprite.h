@@ -6,6 +6,7 @@
 
 struct Texture
 {
+	short width, height;
 	float u1, u2, v1, v2;
 };
 

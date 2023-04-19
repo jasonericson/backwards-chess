@@ -12,6 +12,7 @@ struct Texture
 
 struct Sprite
 {
+	uint32 id;
 	short x, y;
 	Texture* tex;
 	Uint64 timeCreated;
@@ -28,4 +29,5 @@ struct SpriteArray
 extern SpriteArray sprites;
 
 void sprite_init();
-void sprite_create(Texture* tex, short x, short y);
+uint32 sprite_create(Texture* tex, short x, short y);
+void sprite_delete(uint32 id);

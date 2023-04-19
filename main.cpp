@@ -21,6 +21,8 @@ Texture queen_black_tex = Texture{ 16, 16, 0.0f, 0.25f, 0.25f, 0.5f };
 Texture king_white_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.75f, 1.0f };
 Texture king_black_tex = Texture{ 16, 16, 0.25f, 0.5f, 0.25f, 0.5f };
 
+uint32 grid_sprites[8][8] = { 0 };
+
 int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
@@ -35,11 +37,7 @@ int main(int argc, char* argv[])
     time_t t;
     srand((unsigned) time(&t));
 
-    int16 texWidth = 16;
-    int16 texHeight = 16;
-
-    bool white = true;
-    Texture curr_tex = king_white_tex;
+    SDL_Cursor* hoverCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 
     sprite_create(&board_tex, 16, 16);
 
@@ -48,6 +46,12 @@ int main(int argc, char* argv[])
     {
         Uint64 start = SDL_GetPerformanceCounter();
 
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+        int posX = mouseX / 4;
+        int posY = (640 - mouseY) / 4;
+
+        bool mouseDown = false;
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -57,10 +61,26 @@ int main(int argc, char* argv[])
             }
             else if (event.type == SDL_MOUSEBUTTONDOWN)
             {
-                int mouseX, mouseY;
-                SDL_GetMouseState(&mouseX, &mouseY);
-                int posX = mouseX / 4;
-                int posY = (640 - mouseY) / 4;
+                mouseDown = true;
+            }
+        }
+
+        short gridMousePosX = posX - 16;
+        short gridMousePosY = posY - 16;
+        if (gridMousePosX > 0 && gridMousePosX < 128 && gridMousePosY > 0 && gridMousePosY < 128)
+        {
+            SDL_SetCursor(hoverCursor);
+            if (mouseDown)
+            {
+                short gridCol = gridMousePosX / 16;
+                short gridRow = gridMousePosY / 16;
+                short gridPosX = gridCol * 16 + 16;
+                short gridPosY = gridRow * 16 + 16;
+
+                if (grid_sprites[gridCol][gridRow] != 0)
+                {
+                    sprite_delete(grid_sprites[gridCol][gridRow]);
+                }
 
                 Texture* tex;
                 int rand_index = rand() % 12;
@@ -104,8 +124,12 @@ int main(int argc, char* argv[])
                     break;
                 }
 
-                sprite_create(tex, posX, posY);
+                grid_sprites[gridCol][gridRow] = sprite_create(tex, gridPosX, gridPosY);
             }
+        }
+        else
+        {
+            SDL_SetCursor(SDL_GetDefaultCursor());
         }
 
         render_update();
@@ -116,6 +140,8 @@ int main(int argc, char* argv[])
     }
 
     render_cleanup();
+
+    SDL_FreeCursor(hoverCursor);
 
     SDL_Quit();
 

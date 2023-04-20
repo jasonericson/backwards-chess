@@ -37,10 +37,36 @@ void text_init()
     texts.count = 0;
 }
 
-uint32 text_create(char* text, short x, short y)
+uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left */)
 {
     char* next_char = text;
     short next_x = x;
+
+    if (align == Align_Center)
+    {
+        int num_chars = 0;
+        while (*next_char != 0)
+        {
+            ++num_chars;
+            ++next_char;
+        }
+
+        next_x = x - ((7 * num_chars) / 2);
+        next_char = text;
+    }
+    else if (align == Align_Right)
+    {
+        int num_chars = 0;
+        while (*next_char != 0)
+        {
+            ++num_chars;
+            ++next_char;
+        }
+
+        next_x = x - (7 * num_chars);
+        next_char = text;
+    }
+
     uint32 start_id = 0;
     uint32 end_id = 0;
     uint32 curr_id = 0;

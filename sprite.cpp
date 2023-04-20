@@ -25,6 +25,9 @@ uint32 sprite_create(Texture* tex, short x, short y)
 
 void sprite_delete(uint32 id)
 {
+    if (id == 0)
+        return;
+
     for (int i = 0; i < sprites.count; ++i)
     {
         if (sprites.data[i].id == id)

@@ -1,6 +1,7 @@
 #include "game.h"
 
 #include "sprite.h"
+#include "text.h"
 
 #include <SDL.h>
 

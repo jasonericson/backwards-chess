@@ -3,6 +3,7 @@
 #include "game.h"
 #include "render.h"
 #include "sprite.h"
+#include "text.h"
 
 #include <SDL.h>
 #include <stdlib.h>
@@ -28,6 +29,8 @@ int main(int argc, char* argv[])
 
     render_init();
     sprite_init();
+    text_init();
+
     game_init();
 
     hand_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);

@@ -9,13 +9,20 @@
 #include "stb_image.h"
 #include <stdlib.h>
 
-GLuint shaderProgramId, vao, vbo, ubo, textureId;
+GLuint shaderProgramId;
 GLint vertexLoc, uvLoc;
 
-SDL_Window* window;
+struct SpriteMap
+{
+    GLuint vao, vbo, ubo, tex_id;
+    int16 vertices[12 * SPRITE_MAX];
+    float uvs[12 * SPRITE_MAX];
+};
 
-int16 vertices[12 * SPRITE_MAX];
-float uvs[12 * SPRITE_MAX];
+SpriteMap maps[2];
+const char* spritemap_filenames[2] = {"pieces.png", "font.png"};
+
+SDL_Window* window;
 
 const char* vertexShader =
 #ifdef EMSCRIPTEN
@@ -127,115 +134,129 @@ void render_init()
 
     shaderProgramId = getShaderProgramId(vertexShader, fragmentShader);
 
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    int imageWidth, imageHeight, n;
-    unsigned char* image = stbi_load("pieces.png", &imageWidth, &imageHeight, &n, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-    stbi_image_free(image);
-
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ubo);
-    glBindVertexArray(vao);
-
     vertexLoc = glGetAttribLocation(shaderProgramId, "vert");
     uvLoc = glGetAttribLocation(shaderProgramId, "_uv");
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(vertexLoc, 2, GL_SHORT, GL_FALSE, 2 * sizeof(int16), 0);
+    for (int i = 0; i < 2; ++i)
+    {
+        SpriteMap* map = maps + i;
 
-    glBindBuffer(GL_ARRAY_BUFFER, ubo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_TRUE, 2 * sizeof(GLfloat), 0);
+        glGenTextures(1, &map->tex_id);
+        glBindTexture(GL_TEXTURE_2D, map->tex_id);
 
-    glEnableVertexAttribArray(vertexLoc);
-    glEnableVertexAttribArray(uvLoc);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        int imageWidth, imageHeight, n;
+        unsigned char* image = stbi_load(spritemap_filenames[i], &imageWidth, &imageHeight, &n, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+        stbi_image_free(image);
+
+        glGenVertexArrays(1, &map->vao);
+        glGenBuffers(1, &map->vbo);
+        glGenBuffers(1, &map->ubo);
+        glBindVertexArray(map->vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(map->vertices), map->vertices, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(vertexLoc, 2, GL_SHORT, GL_FALSE, 2 * sizeof(int16), 0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(map->uvs), map->uvs, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_TRUE, 2 * sizeof(GLfloat), 0);
+
+        glEnableVertexAttribArray(vertexLoc);
+        glEnableVertexAttribArray(uvLoc);
+    }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     glUseProgram(shaderProgramId);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureId);
-    glBindVertexArray(vao);
 }
 
 void render_update()
 {
-    for (int i = 0; i < sprites.count; ++i)
-    {
-        int offset = 12 * i;
-        Sprite* sprite = sprites.data + i;
-
-        // top right
-        vertices[offset + 0] = sprite->x + sprite->tex->width;
-        vertices[offset + 1] = sprite->y;
-
-        // bottom right
-        vertices[offset + 2] = sprite->x + sprite->tex->width;
-        vertices[offset + 3] = sprite->y + sprite->tex->height;
-
-        // top left
-        vertices[offset + 4] = sprite->x;
-        vertices[offset + 5] = sprite->y;
-
-        // bottom right
-        vertices[offset + 6] = sprite->x + sprite->tex->width;
-        vertices[offset + 7] = sprite->y + sprite->tex->height;
-
-        // bottom left
-        vertices[offset + 8] = sprite->x;
-        vertices[offset + 9] = sprite->y + sprite->tex->height;
-
-        // top left
-        vertices[offset + 10] = sprite->x;
-        vertices[offset + 11] = sprite->y;
-
-        uvs[offset + 0] = sprite->tex->u2;
-        uvs[offset + 1] = sprite->tex->v2;
-
-        uvs[offset + 2] = sprite->tex->u2;
-        uvs[offset + 3] = sprite->tex->v1;
-
-        uvs[offset + 4] = sprite->tex->u1;
-        uvs[offset + 5] = sprite->tex->v2;
-
-        uvs[offset + 6] = sprite->tex->u2;
-        uvs[offset + 7] = sprite->tex->v1;
-
-        uvs[offset + 8] = sprite->tex->u1;
-        uvs[offset + 9] = sprite->tex->v1;
-
-        uvs[offset + 10] = sprite->tex->u1;
-        uvs[offset + 11] = sprite->tex->v2;
-    }
-
     glViewport(0, 0, 640, 640);
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprites.count * 12, vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, ubo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprites.count * 12, uvs);
-    glDrawArrays(GL_TRIANGLES, 0, 6 * sprites.count);
+    for (int i = 0; i < 2; ++i)
+    {
+        SpriteMap* map = maps + i;
+        SpriteArray* sprite_array = sprites + i;
+        for (int j = 0; j < sprite_array->count; ++j)
+        {
+            int offset = 12 * j;
+            Sprite* sprite = sprite_array->data + j;
+
+            // top right
+            map->vertices[offset + 0] = sprite->x + sprite->tex->width;
+            map->vertices[offset + 1] = sprite->y;
+
+            // bottom right
+            map->vertices[offset + 2] = sprite->x + sprite->tex->width;
+            map->vertices[offset + 3] = sprite->y + sprite->tex->height;
+
+            // top left
+            map->vertices[offset + 4] = sprite->x;
+            map->vertices[offset + 5] = sprite->y;
+
+            // bottom right
+            map->vertices[offset + 6] = sprite->x + sprite->tex->width;
+            map->vertices[offset + 7] = sprite->y + sprite->tex->height;
+
+            // bottom left
+            map->vertices[offset + 8] = sprite->x;
+            map->vertices[offset + 9] = sprite->y + sprite->tex->height;
+
+            // top left
+            map->vertices[offset + 10] = sprite->x;
+            map->vertices[offset + 11] = sprite->y;
+
+            map->uvs[offset + 0] = sprite->tex->u2;
+            map->uvs[offset + 1] = sprite->tex->v2;
+
+            map->uvs[offset + 2] = sprite->tex->u2;
+            map->uvs[offset + 3] = sprite->tex->v1;
+
+            map->uvs[offset + 4] = sprite->tex->u1;
+            map->uvs[offset + 5] = sprite->tex->v2;
+
+            map->uvs[offset + 6] = sprite->tex->u2;
+            map->uvs[offset + 7] = sprite->tex->v1;
+
+            map->uvs[offset + 8] = sprite->tex->u1;
+            map->uvs[offset + 9] = sprite->tex->v1;
+
+            map->uvs[offset + 10] = sprite->tex->u1;
+            map->uvs[offset + 11] = sprite->tex->v2;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, map->tex_id);
+
+        glBindVertexArray(map->vao);
+        glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_array->count * 12, map->vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_array->count * 12, map->uvs);
+        glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_array->count);
+    }
 
     SDL_GL_SwapWindow(window);
 }
 
 void render_cleanup()
 {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    glDeleteBuffers(1, &ubo);
-    glDeleteTextures(1, &textureId);
+    for (int i = 0; i < 2; ++i)
+    {
+        glDeleteVertexArrays(1, &maps[i].vao);
+        glDeleteBuffers(1, &maps[i].vbo);
+        glDeleteBuffers(1, &maps[i].ubo);
+        glDeleteTextures(1, &maps[i].tex_id);
+    }
+
     glDeleteProgram(shaderProgramId);
 }

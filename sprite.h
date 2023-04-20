@@ -6,6 +6,7 @@
 
 struct Texture
 {
+    short map_id;
     short width, height;
     float u1, u2, v1, v2;
 };
@@ -26,7 +27,7 @@ struct SpriteArray
     int count;
 };
 
-extern SpriteArray sprites;
+extern SpriteArray sprites[2];
 
 void sprite_init();
 uint32 sprite_create(Texture* tex, short x, short y);

@@ -9,6 +9,7 @@
 #include <time.h>
 
 bool g_mouse_down = false;
+bool g_space_down = false;
 int g_mouse_x, g_mouse_y;
 
 SDL_Cursor* hand_cursor;
@@ -44,6 +45,7 @@ int main(int argc, char* argv[])
         g_mouse_y = (640 - g_mouse_y) / 4;
 
         g_mouse_down = false;
+        g_space_down = false;
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -54,6 +56,13 @@ int main(int argc, char* argv[])
             else if (event.type == SDL_MOUSEBUTTONDOWN)
             {
                 g_mouse_down = true;
+            }
+            else if (event.type == SDL_KEYDOWN)
+            {
+                if (event.key.keysym.sym == SDL_KeyCode::SDLK_SPACE)
+                {
+                    g_space_down = true;
+                }
             }
         }
 

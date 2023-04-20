@@ -129,6 +129,11 @@ void game_init()
 
 void game_update()
 {
+    if (g_space_down)
+    {
+        setup_panel(!panel_white);
+    }
+
     bool hovering = false;
     for (int i = 0; i < 70; ++i)
     {

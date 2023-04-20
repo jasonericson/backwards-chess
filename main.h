@@ -9,4 +9,6 @@ extern bool g_mouse_down;
 extern int g_mouse_x;
 extern int g_mouse_y;
 
+extern bool g_space_down;
+
 void cursor_set(bool hand);

@@ -72,6 +72,7 @@ uint32 king_panel_sprite, queen_panel_sprite, bishop_panel_sprite, knight_panel_
 bool panel_white = true;
 
 uint32 message_id = 0;
+bool in_check = false;
 
 void setup_panel(bool white)
 {
@@ -130,6 +131,77 @@ void game_init()
     held_sprite = 0;
 }
 
+bool check_for_check()
+{
+    short king_row = -1;
+    short king_col = -1;
+
+    bool found = false;
+    for (short row = 0; row < 8; ++row)
+    {
+        for (short col = 0; col < 8; ++col)
+        {
+            if (grid[col][row].piece.type == Piece_King && grid[col][row].piece.white)
+            {
+                king_row = row;
+                king_col = col;
+                found = true;
+                break;
+            }
+        }
+
+        if (found)
+            break;
+    }
+
+    if (king_row == -1 || king_col == -1)
+        return false;
+
+    // up
+    short check_row = king_row + 1;
+    while (check_row < 8)
+    {
+        GridSquare* sq = &grid[king_col][check_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (!sq->piece.white)
+            {
+                if ((check_row - king_row == 1 && sq->piece.type == Piece_King) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Rook)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        ++check_row;
+    }
+
+    // down
+    check_row = king_row - 1;
+    while (check_row >= 0)
+    {
+        GridSquare* sq = &grid[king_col][check_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (!sq->piece.white)
+            {
+                if ((king_row - check_row == 1 && sq->piece.type == Piece_King) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Rook)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        --check_row;
+    }
+
+    return false;
+}
+
 void game_update()
 {
     if (g_space_down)
@@ -171,6 +243,28 @@ void game_update()
                         sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
                         held_piece.type = Piece_None;
                         held_sprite = 0;
+
+                        if (check_for_check())
+                        {
+                            if (!in_check)
+                            {
+                                if (message_id != 0)
+                                    text_delete(message_id);
+                                message_id = text_create("Check", 80, 20, Align_Center);
+
+                                in_check = true;
+                            }
+                        }
+                        else
+                        {
+                            if (in_check)
+                            {
+                                if (message_id != 0)
+                                    text_delete(message_id);
+
+                                in_check = false;
+                            }
+                        }
                     }
                     else if (held_piece.type == Piece_None && grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
                     {
@@ -179,6 +273,28 @@ void game_update()
 
                         grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
                         grid[sq.grid_col][sq.grid_row].piece_sprite = 0;
+
+                        if (check_for_check())
+                        {
+                            if (!in_check)
+                            {
+                                if (message_id != 0)
+                                    text_delete(message_id);
+                                message_id = text_create("Check", 80, 20, Align_Center);
+
+                                in_check = true;
+                            }
+                        }
+                        else
+                        {
+                            if (in_check)
+                            {
+                                if (message_id != 0)
+                                    text_delete(message_id);
+
+                                in_check = false;
+                            }
+                        }
                     }
                     break;
                 default:

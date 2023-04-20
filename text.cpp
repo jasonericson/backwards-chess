@@ -4,6 +4,19 @@
 
 Texture characters[256];
 
+const uint16 TEXT_MAX = 128;
+struct TextInstance
+{
+    uint32 id, sprite_id_start, sprite_id_end;
+};
+uint32 text_next_id;
+
+struct TextArray
+{
+    TextInstance data[TEXT_MAX];
+    int count;
+} texts;
+
 void text_init()
 {
     const char* order = "~1234567890-+!@#$%^&*()_={}[]|\\:;\"'<,>.?/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -19,16 +32,60 @@ void text_init()
             row += 1;
         }
     }
+
+    text_next_id = 1;
+    texts.count = 0;
 }
 
-void text_create(const char* text, short x, short y)
+uint32 text_create(char* text, short x, short y)
 {
-    char* next_char = (char *)text;
+    char* next_char = text;
     short next_x = x;
+    uint32 start_id = 0;
+    uint32 end_id = 0;
+    uint32 curr_id = 0;
     while (*next_char != 0)
     {
-        sprite_create(&characters[*next_char], next_x, y);
+        curr_id = sprite_create(&characters[*next_char], next_x, y);
+        if (start_id == 0)
+            start_id = curr_id;
+
         next_x += 7;
         ++next_char;
+    }
+
+    if (curr_id != 0)
+    {
+        end_id = curr_id;
+        uint32 this_id = text_next_id;
+        texts.data[texts.count] = { this_id, start_id, end_id };
+        ++texts.count;
+
+        return this_id;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+void text_delete(uint32 id)
+{
+    for (int i = 0; i < texts.count; ++i)
+    {
+        if (texts.data[i].id == id)
+        {
+            uint32 curr_id = texts.data[i].sprite_id_start;
+            while (curr_id <= texts.data[i].sprite_id_end)
+            {
+                sprite_delete(curr_id);
+                ++curr_id;
+            }
+
+            --texts.count;
+            texts.data[i] = texts.data[texts.count];
+
+            break;
+        }
     }
 }

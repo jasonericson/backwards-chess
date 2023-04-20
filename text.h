@@ -3,4 +3,5 @@
 #include "main.h"
 
 void text_init();
-void text_create(const char* text, short x, short y);
+uint32 text_create(char* text, short x, short y);
+void text_delete(uint32 id);

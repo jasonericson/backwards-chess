@@ -71,6 +71,8 @@ uint32 held_sprite;
 uint32 king_panel_sprite, queen_panel_sprite, bishop_panel_sprite, knight_panel_sprite, rook_panel_sprite, pawn_panel_sprite;
 bool panel_white = true;
 
+uint32 message_id = 0;
+
 void setup_panel(bool white)
 {
     if (panel_white == white)
@@ -169,6 +171,14 @@ void game_update()
                         sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
                         held_piece.type = Piece_None;
                         held_sprite = 0;
+                    }
+                    else if (held_piece.type == Piece_None && grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
+                    {
+                        held_piece = grid[sq.grid_col][sq.grid_row].piece;
+                        held_sprite = grid[sq.grid_col][sq.grid_row].piece_sprite;
+
+                        grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
+                        grid[sq.grid_col][sq.grid_row].piece_sprite = 0;
                     }
                     break;
                 default:

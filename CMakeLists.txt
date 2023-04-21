@@ -22,8 +22,10 @@ target_link_libraries(BackwardsChess
     PRIVATE SDL2::SDL2main
     PRIVATE ${OPENGL_LIBRARY})
 
-configure_file(${SDL2_BINDIR}/SDL2.dll ${CMAKE_CURRENT_BINARY_DIR}/SDL2.dll COPYONLY)
-configure_file(${PROJECT_SOURCE_DIR}/pieces.png ${CMAKE_CURRENT_BINARY_DIR}/pieces.png COPYONLY)
-configure_file(${PROJECT_SOURCE_DIR}/font.png ${CMAKE_CURRENT_BINARY_DIR}/font.png COPYONLY)
+add_custom_command(
+    TARGET BackwardsChess POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:BackwardsChess> ${SDL2_BINDIR}/SDL2.dll ${PROJECT_SOURCE_DIR}/pieces.png ${PROJECT_SOURCE_DIR}/font.png
+    VERBATIM
+)
 
 target_precompile_headers(BackwardsChess PRIVATE "main.h")

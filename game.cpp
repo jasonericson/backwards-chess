@@ -131,7 +131,7 @@ void game_init()
     held_sprite = 0;
 }
 
-bool check_for_check()
+bool check_for_check(bool white)
 {
     short king_row = -1;
     short king_col = -1;
@@ -141,7 +141,7 @@ bool check_for_check()
     {
         for (short col = 0; col < 8; ++col)
         {
-            if (grid[col][row].piece.type == Piece_King && grid[col][row].piece.white)
+            if (grid[col][row].piece.type == Piece_King && grid[col][row].piece.white == white)
             {
                 king_row = row;
                 king_col = col;
@@ -157,14 +157,56 @@ bool check_for_check()
     if (king_row == -1 || king_col == -1)
         return false;
 
+    // right
+    int16 check_col = king_col + 1;
+    while (check_col < 8)
+    {
+        GridSquare* sq = &grid[check_col][king_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (sq->piece.white != white)
+            {
+                if ((check_col - king_col == 1 && sq->piece.type == Piece_King) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Rook)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        ++check_col;
+    }
+
+    // left
+    check_col = king_col - 1;
+    while (check_col >= 0)
+    {
+        GridSquare* sq = &grid[check_col][king_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (sq->piece.white != white)
+            {
+                if ((king_col - check_col == 1 && sq->piece.type == Piece_King) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Rook)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        --check_col;
+    }
+
     // up
-    short check_row = king_row + 1;
+    int16 check_row = king_row + 1;
     while (check_row < 8)
     {
         GridSquare* sq = &grid[king_col][check_row];
         if (sq->piece.type != Piece_None)
         {
-            if (!sq->piece.white)
+            if (sq->piece.white != white)
             {
                 if ((check_row - king_row == 1 && sq->piece.type == Piece_King) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Rook)
                 {
@@ -185,7 +227,7 @@ bool check_for_check()
         GridSquare* sq = &grid[king_col][check_row];
         if (sq->piece.type != Piece_None)
         {
-            if (!sq->piece.white)
+            if (sq->piece.white != white)
             {
                 if ((king_row - check_row == 1 && sq->piece.type == Piece_King) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Rook)
                 {
@@ -197,6 +239,206 @@ bool check_for_check()
         }
 
         --check_row;
+    }
+
+    // right-up
+    check_col = king_col + 1;
+    check_row = king_row + 1;
+    while (check_col < 8 && check_row < 8)
+    {
+        GridSquare* sq = &grid[check_col][check_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (sq->piece.white != white)
+            {
+                if ((check_col - king_col == 1 && (sq->piece.type == Piece_King || sq->piece.type == Piece_Pawn)) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Bishop)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        ++check_col;
+        ++check_row;
+    }
+
+    // right-down
+    check_col = king_col + 1;
+    check_row = king_row - 1;
+    while (check_col < 8 && check_row >= 0)
+    {
+        GridSquare* sq = &grid[check_col][check_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (sq->piece.white != white)
+            {
+                if ((check_col - king_col == 1 && (sq->piece.type == Piece_King || sq->piece.type == Piece_Pawn)) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Bishop)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        ++check_col;
+        --check_row;
+    }
+
+    // left-down
+    check_col = king_col - 1;
+    check_row = king_row - 1;
+    while (check_col >= 0 && check_row >= 0)
+    {
+        GridSquare* sq = &grid[check_col][check_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (sq->piece.white != white)
+            {
+                if ((king_col - check_col == 1 && (sq->piece.type == Piece_King || sq->piece.type == Piece_Pawn)) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Bishop)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        --check_col;
+        --check_row;
+    }
+
+    // left-up
+    check_col = king_col - 1;
+    check_row = king_row + 1;
+    while (check_col >= 0 && check_row < 8)
+    {
+        GridSquare* sq = &grid[check_col][check_row];
+        if (sq->piece.type != Piece_None)
+        {
+            if (sq->piece.white != white)
+            {
+                if ((king_col - check_col == 1 && (sq->piece.type == Piece_King || sq->piece.type == Piece_Pawn)) || sq->piece.type == Piece_Queen || sq->piece.type == Piece_Bishop)
+                {
+                    return true;
+                }
+            }
+
+            break;
+        }
+
+        --check_col;
+        ++check_row;
+    }
+
+    // knight right
+    check_col = king_col + 2;
+    if (check_col < 8)
+    {
+        // up
+        check_row = king_row + 1;
+        if (check_row < 8)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+
+        // down
+        check_row = king_row - 1;
+        if (check_row >= 0)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+    }
+
+    // knight left
+    check_col = king_col - 2;
+    if (check_col >= 0)
+    {
+        // up
+        check_row = king_row + 1;
+        if (check_row < 8)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+
+        // down
+        check_row = king_row - 1;
+        if (check_row >= 0)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+    }
+
+    // knight up
+    check_row = king_row + 2;
+    if (check_row < 8)
+    {
+        // right
+        check_col = king_col + 1;
+        if (check_col < 8)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+
+        // left
+        check_col = king_col - 1;
+        if (check_col >= 0)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+    }
+
+    // knight down
+    check_row = king_row - 2;
+    if (check_row >= 0)
+    {
+        // right
+        check_col = king_col + 1;
+        if (check_col < 8)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
+
+        // left
+        check_col = king_col - 1;
+        if (check_col >= 0)
+        {
+            GridSquare* sq = &grid[check_col][check_row];
+            if (sq->piece.type == Piece_Knight && sq->piece.white != white)
+            {
+                return true;
+            }
+        }
     }
 
     return false;
@@ -235,6 +477,7 @@ void game_update()
                     }
                     break;
                 case Action_GridSquare:
+                    // place on square
                     if (held_piece.type != Piece_None && grid[sq.grid_col][sq.grid_row].piece.type == Piece_None)
                     {
                         grid[sq.grid_col][sq.grid_row].piece = held_piece;
@@ -244,7 +487,7 @@ void game_update()
                         held_piece.type = Piece_None;
                         held_sprite = 0;
 
-                        if (check_for_check())
+                        if (check_for_check(true) || check_for_check(false))
                         {
                             if (!in_check)
                             {
@@ -266,6 +509,7 @@ void game_update()
                             }
                         }
                     }
+                    // pick up from square
                     else if (held_piece.type == Piece_None && grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
                     {
                         held_piece = grid[sq.grid_col][sq.grid_row].piece;
@@ -273,28 +517,6 @@ void game_update()
 
                         grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
                         grid[sq.grid_col][sq.grid_row].piece_sprite = 0;
-
-                        if (check_for_check())
-                        {
-                            if (!in_check)
-                            {
-                                if (message_id != 0)
-                                    text_delete(message_id);
-                                message_id = text_create("Check", 80, 20, Align_Center);
-
-                                in_check = true;
-                            }
-                        }
-                        else
-                        {
-                            if (in_check)
-                            {
-                                if (message_id != 0)
-                                    text_delete(message_id);
-
-                                in_check = false;
-                            }
-                        }
                     }
                     break;
                 default:

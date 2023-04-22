@@ -123,7 +123,7 @@ void game_init()
     {
         for (short row = 0; row < 8; ++row)
         {
-            clicky_squares[6 + (8 * col + row)] = ClickySquare { grid_pos_x + col * 14, grid_pos_y + row * 14, 14, 14, Action::Action_GridSquare, {} , col, row };
+            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 4), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, {} , col, row };
         }
     }
 

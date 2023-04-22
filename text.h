@@ -10,5 +10,5 @@ enum TextAlign
 };
 
 void text_init();
-uint32 text_create(char* text, short x, short y, TextAlign align = Align_Left);
+uint32 text_create(const char* text, short x, short y, TextAlign align = Align_Left);
 void text_delete(uint32 id);

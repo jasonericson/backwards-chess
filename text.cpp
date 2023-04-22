@@ -37,9 +37,9 @@ void text_init()
     texts.count = 0;
 }
 
-uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left */)
+uint32 text_create(const char* text, short x, short y, TextAlign align /* = Align_Left */)
 {
-    char* next_char = text;
+    char* next_char = (char*)text;
     short next_x = x;
 
     if (align == Align_Center)
@@ -52,7 +52,7 @@ uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left
         }
 
         next_x = x - ((7 * num_chars) / 2);
-        next_char = text;
+        next_char = (char*)text;
     }
     else if (align == Align_Right)
     {
@@ -64,7 +64,7 @@ uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left
         }
 
         next_x = x - (7 * num_chars);
-        next_char = text;
+        next_char = (char*)text;
     }
 
     uint32 start_id = 0;

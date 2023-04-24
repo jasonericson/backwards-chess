@@ -72,7 +72,7 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
     uint32 curr_id = 0;
     while (*next_char != 0)
     {
-        curr_id = sprite_create(&characters[*next_char], next_x, y);
+        curr_id = sprite_create(&characters[*next_char], next_x, y, 1);
         if (start_id == 0)
             start_id = curr_id;
 

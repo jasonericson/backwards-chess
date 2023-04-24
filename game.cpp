@@ -96,12 +96,12 @@ void setup_panel(bool white)
     sprite_delete(rook_panel_sprite);
     sprite_delete(pawn_panel_sprite);
 
-    king_panel_sprite = sprite_create(&piece_textures[Piece_King][white], piece_panel_x, king_panel_y);
-    queen_panel_sprite = sprite_create(&piece_textures[Piece_Queen][white], piece_panel_x, queen_panel_y);
-    bishop_panel_sprite = sprite_create(&piece_textures[Piece_Bishop][white], piece_panel_x, bishop_panel_y);
-    knight_panel_sprite = sprite_create(&piece_textures[Piece_Knight][white], piece_panel_x, knight_panel_y);
-    rook_panel_sprite = sprite_create(&piece_textures[Piece_Rook][white], piece_panel_x, rook_panel_y);
-    pawn_panel_sprite = sprite_create(&piece_textures[Piece_Pawn][white], piece_panel_x, pawn_panel_y);
+    king_panel_sprite = sprite_create(&piece_textures[Piece_King][white], piece_panel_x, king_panel_y, 1);
+    queen_panel_sprite = sprite_create(&piece_textures[Piece_Queen][white], piece_panel_x, queen_panel_y, 1);
+    bishop_panel_sprite = sprite_create(&piece_textures[Piece_Bishop][white], piece_panel_x, bishop_panel_y, 1);
+    knight_panel_sprite = sprite_create(&piece_textures[Piece_Knight][white], piece_panel_x, knight_panel_y, 1);
+    rook_panel_sprite = sprite_create(&piece_textures[Piece_Rook][white], piece_panel_x, rook_panel_y, 1);
+    pawn_panel_sprite = sprite_create(&piece_textures[Piece_Pawn][white], piece_panel_x, pawn_panel_y, 1);
 
     clicky_squares[0] = ClickySquare { piece_panel_x, king_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_King, white } };
     clicky_squares[1] = ClickySquare { piece_panel_x, queen_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_Queen, white } };
@@ -115,7 +115,7 @@ void game_init()
 {
     grid_pos_x = 160 - 112 - 8;
     grid_pos_y = 160 - 112 - 8;
-    sprite_create(&board_tex, grid_pos_x, grid_pos_y);
+    sprite_create(&board_tex, grid_pos_x, grid_pos_y, 0);
 
     setup_panel(false);
 
@@ -464,6 +464,7 @@ void game_update()
                 switch (sq.action)
                 {
                 case Action_GrabPiece:
+                    // grab piece from panel
                     if (!(held_piece.type == sq.piece.type && held_piece.white == sq.piece.white))
                     {
                         Texture* piece_tex = &piece_textures[sq.piece.type][sq.piece.white];
@@ -472,40 +473,52 @@ void game_update()
                         {
                             sprite_delete(held_sprite);
                         }
-                        held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y);
+                        held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, 2);
                         held_piece = sq.piece;
                     }
                     break;
                 case Action_GridSquare:
                     // place on square
-                    if (held_piece.type != Piece_None && grid[sq.grid_col][sq.grid_row].piece.type == Piece_None)
+                    if (held_piece.type != Piece_None)
                     {
-                        grid[sq.grid_col][sq.grid_row].piece = held_piece;
-                        grid[sq.grid_col][sq.grid_row].piece_sprite = held_sprite;
+                        GridSquare* grid_sq = &grid[sq.grid_col][sq.grid_row];
 
-                        sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
-                        held_piece.type = Piece_None;
-                        held_sprite = 0;
-
-                        if (check_for_check(true) || check_for_check(false))
+                        // if space is blank OR has opponent piece
+                        if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
                         {
-                            if (!in_check)
+                            // get rid of opponent piece
+                            if (grid_sq->piece_sprite != 0)
                             {
-                                if (message_id != 0)
-                                    text_delete(message_id);
-                                message_id = text_create("Check", 80, 20, Align_Center);
-
-                                in_check = true;
+                                sprite_delete(grid_sq->piece_sprite);
                             }
-                        }
-                        else
-                        {
-                            if (in_check)
-                            {
-                                if (message_id != 0)
-                                    text_delete(message_id);
 
-                                in_check = false;
+                            grid_sq->piece = held_piece;
+                            grid_sq->piece_sprite = held_sprite;
+
+                            sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
+                            held_piece.type = Piece_None;
+                            held_sprite = 0;
+
+                            if (check_for_check(true) || check_for_check(false))
+                            {
+                                if (!in_check)
+                                {
+                                    if (message_id != 0)
+                                        text_delete(message_id);
+                                    message_id = text_create("Check", 80, 20, Align_Center);
+
+                                    in_check = true;
+                                }
+                            }
+                            else
+                            {
+                                if (in_check)
+                                {
+                                    if (message_id != 0)
+                                        text_delete(message_id);
+
+                                    in_check = false;
+                                }
                             }
                         }
                     }
@@ -514,6 +527,7 @@ void game_update()
                     {
                         held_piece = grid[sq.grid_col][sq.grid_row].piece;
                         held_sprite = grid[sq.grid_col][sq.grid_row].piece_sprite;
+                        sprite_set_layer(held_sprite, 2);
 
                         grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
                         grid[sq.grid_col][sq.grid_row].piece_sprite = 0;

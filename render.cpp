@@ -190,95 +190,101 @@ void render_update()
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int i = 0; i < 2; ++i)
+    for (int map_id = 0; map_id < 2; ++map_id)
     {
-        SpriteMap* map = maps + i;
-        SpriteArray* sprite_array = sprites + i;
-        for (int j = 0; j < sprite_array->count; ++j)
+        SpriteMap* map = maps + map_id;
+        uint32 sprite_count = 0;
+        for (int layer = 0; layer < SPRITE_LAYERS; ++layer)
         {
-            int offset = 12 * j;
-            Sprite* sprite = sprite_array->data + j;
-
-            if (sprite->smooth_pos)
+            SpriteArray* sprite_array = &sprites[map_id][layer];
+            for (int j = 0; j < sprite_array->count; ++j)
             {
-                // top right
-                map->vertices[offset + 0] = sprite->x + sprite->tex->width * 4;
-                map->vertices[offset + 1] = sprite->y;
+                int offset = 12 * j + 12 * sprite_count;
+                Sprite* sprite = sprite_array->data + j;
 
-                // bottom right
-                map->vertices[offset + 2] = sprite->x + sprite->tex->width * 4;
-                map->vertices[offset + 3] = sprite->y + sprite->tex->height * 4;
+                if (sprite->smooth_pos)
+                {
+                    // top right
+                    map->vertices[offset + 0] = sprite->x + sprite->tex->width * 4;
+                    map->vertices[offset + 1] = sprite->y;
 
-                // top left
-                map->vertices[offset + 4] = sprite->x;
-                map->vertices[offset + 5] = sprite->y;
+                    // bottom right
+                    map->vertices[offset + 2] = sprite->x + sprite->tex->width * 4;
+                    map->vertices[offset + 3] = sprite->y + sprite->tex->height * 4;
 
-                // bottom right
-                map->vertices[offset + 6] = sprite->x + sprite->tex->width * 4;
-                map->vertices[offset + 7] = sprite->y + sprite->tex->height * 4;
+                    // top left
+                    map->vertices[offset + 4] = sprite->x;
+                    map->vertices[offset + 5] = sprite->y;
 
-                // bottom left
-                map->vertices[offset + 8] = sprite->x;
-                map->vertices[offset + 9] = sprite->y + sprite->tex->height * 4;
+                    // bottom right
+                    map->vertices[offset + 6] = sprite->x + sprite->tex->width * 4;
+                    map->vertices[offset + 7] = sprite->y + sprite->tex->height * 4;
 
-                // top left
-                map->vertices[offset + 10] = sprite->x;
-                map->vertices[offset + 11] = sprite->y;
+                    // bottom left
+                    map->vertices[offset + 8] = sprite->x;
+                    map->vertices[offset + 9] = sprite->y + sprite->tex->height * 4;
+
+                    // top left
+                    map->vertices[offset + 10] = sprite->x;
+                    map->vertices[offset + 11] = sprite->y;
+                }
+                else
+                {
+                    // top right
+                    map->vertices[offset + 0] = sprite->x * 4 + sprite->tex->width * 4;
+                    map->vertices[offset + 1] = sprite->y * 4;
+
+                    // bottom right
+                    map->vertices[offset + 2] = sprite->x * 4 + sprite->tex->width * 4;
+                    map->vertices[offset + 3] = sprite->y * 4 + sprite->tex->height * 4;
+
+                    // top left
+                    map->vertices[offset + 4] = sprite->x * 4;
+                    map->vertices[offset + 5] = sprite->y * 4;
+
+                    // bottom right
+                    map->vertices[offset + 6] = sprite->x * 4 + sprite->tex->width * 4;
+                    map->vertices[offset + 7] = sprite->y * 4 + sprite->tex->height * 4;
+
+                    // bottom left
+                    map->vertices[offset + 8] = sprite->x * 4;
+                    map->vertices[offset + 9] = sprite->y * 4 + sprite->tex->height * 4;
+
+                    // top left
+                    map->vertices[offset + 10] = sprite->x * 4;
+                    map->vertices[offset + 11] = sprite->y * 4;
+                }
+
+                map->uvs[offset + 0] = sprite->tex->u2;
+                map->uvs[offset + 1] = sprite->tex->v2;
+
+                map->uvs[offset + 2] = sprite->tex->u2;
+                map->uvs[offset + 3] = sprite->tex->v1;
+
+                map->uvs[offset + 4] = sprite->tex->u1;
+                map->uvs[offset + 5] = sprite->tex->v2;
+
+                map->uvs[offset + 6] = sprite->tex->u2;
+                map->uvs[offset + 7] = sprite->tex->v1;
+
+                map->uvs[offset + 8] = sprite->tex->u1;
+                map->uvs[offset + 9] = sprite->tex->v1;
+
+                map->uvs[offset + 10] = sprite->tex->u1;
+                map->uvs[offset + 11] = sprite->tex->v2;
             }
-            else
-            {
-                // top right
-                map->vertices[offset + 0] = sprite->x * 4 + sprite->tex->width * 4;
-                map->vertices[offset + 1] = sprite->y * 4;
 
-                // bottom right
-                map->vertices[offset + 2] = sprite->x * 4 + sprite->tex->width * 4;
-                map->vertices[offset + 3] = sprite->y * 4 + sprite->tex->height * 4;
-
-                // top left
-                map->vertices[offset + 4] = sprite->x * 4;
-                map->vertices[offset + 5] = sprite->y * 4;
-
-                // bottom right
-                map->vertices[offset + 6] = sprite->x * 4 + sprite->tex->width * 4;
-                map->vertices[offset + 7] = sprite->y * 4 + sprite->tex->height * 4;
-
-                // bottom left
-                map->vertices[offset + 8] = sprite->x * 4;
-                map->vertices[offset + 9] = sprite->y * 4 + sprite->tex->height * 4;
-
-                // top left
-                map->vertices[offset + 10] = sprite->x * 4;
-                map->vertices[offset + 11] = sprite->y * 4;
-            }
-
-            map->uvs[offset + 0] = sprite->tex->u2;
-            map->uvs[offset + 1] = sprite->tex->v2;
-
-            map->uvs[offset + 2] = sprite->tex->u2;
-            map->uvs[offset + 3] = sprite->tex->v1;
-
-            map->uvs[offset + 4] = sprite->tex->u1;
-            map->uvs[offset + 5] = sprite->tex->v2;
-
-            map->uvs[offset + 6] = sprite->tex->u2;
-            map->uvs[offset + 7] = sprite->tex->v1;
-
-            map->uvs[offset + 8] = sprite->tex->u1;
-            map->uvs[offset + 9] = sprite->tex->v1;
-
-            map->uvs[offset + 10] = sprite->tex->u1;
-            map->uvs[offset + 11] = sprite->tex->v2;
+            sprite_count += sprite_array->count;
         }
 
         glBindTexture(GL_TEXTURE_2D, map->tex_id);
 
         glBindVertexArray(map->vao);
         glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_array->count * 12, map->vertices);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_count * 12, map->vertices);
         glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_array->count * 12, map->uvs);
-        glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_array->count);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_count * 12, map->uvs);
+        glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_count);
     }
 
     SDL_GL_SwapWindow(window);

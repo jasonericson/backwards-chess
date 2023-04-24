@@ -28,9 +28,13 @@ struct SpriteArray
     int count;
 };
 
-extern SpriteArray sprites[2];
+const uint16 SPRITE_LAYERS = 3;
+
+extern SpriteArray sprites[2][SPRITE_LAYERS];
 
 void sprite_init();
-uint32 sprite_create(Texture* tex, short x, short y);
+uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer);
 void sprite_delete(uint32 id);
+Sprite* sprite_find(uint32 id);
 void sprite_set_pos(uint32 id, short x, short y, bool smooth = false);
+void sprite_set_layer(uint32 id, uint16 depth_layer);

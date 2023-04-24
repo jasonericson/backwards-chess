@@ -16,7 +16,7 @@ void sprite_init()
     next_id = 1;
 }
 
-uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer)
+uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r, float g, float b)
 {
     if (depth_layer >= SPRITE_LAYERS)
         return 0;
@@ -30,6 +30,9 @@ uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer)
     array->data[array->count].y = y;
     array->data[array->count].tex = tex;
     array->data[array->count].smooth_pos = false;
+    array->data[array->count].r = r;
+    array->data[array->count].g = g;
+    array->data[array->count].b = b;
 
     ++array->count;
     ++next_id;

@@ -74,14 +74,17 @@ int16 held_last_row;
 uint32 king_panel_sprite, queen_panel_sprite, bishop_panel_sprite, knight_panel_sprite, rook_panel_sprite, pawn_panel_sprite;
 bool panel_white = true;
 
-uint32 message_id = 0;
+uint32 white_message_id = 0;
+uint32 black_message_id = 0;
 enum CheckState
 {
     CS_None,
     CS_Check,
     CS_CheckMate,
     CS_StaleMate,
-} check_state;
+};
+CheckState white_check_state;
+CheckState black_check_state;
 bool in_check = false;
 
 void setup_panel(bool white)
@@ -1001,82 +1004,118 @@ void game_update()
                         // if space is blank OR has opponent piece
                         if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
                         {
-                            // if we're just putting back, skip all the checks
-                            if (sq.grid_col == held_last_col && sq.grid_row == held_last_row)
+                            // get rid of opponent piece
+                            if (grid_sq->piece_sprite != 0)
                             {
-                                grid_sq->piece = held_piece;
-                                grid_sq->piece_sprite = held_sprite;
-
-                                sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
-                                held_piece.type = Piece_None;
-                                held_sprite = 0;
+                                sprite_delete(grid_sq->piece_sprite);
                             }
-                            else
+
+                            grid_sq->piece = held_piece;
+                            grid_sq->piece_sprite = held_sprite;
+
+                            sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
+                            held_piece.type = Piece_None;
+                            held_sprite = 0;
+
+                            held_last_col = -1;
+                            held_last_row = -1;
+
+                            // white
                             {
-                                // validate move first
-                                test_add(held_piece, sq.grid_col, sq.grid_row);
-                                if (!check_for_check(held_piece.white, test_state))
+                                bool now_in_check = check_for_check(true, grid);
+                                bool any_safe_moves = check_for_safe_moves(true);
+                                if (now_in_check && !any_safe_moves)
                                 {
-                                    // get rid of opponent piece
-                                    if (grid_sq->piece_sprite != 0)
+                                    if (white_check_state != CS_CheckMate)
                                     {
-                                        sprite_delete(grid_sq->piece_sprite);
+                                        if (white_message_id != 0)
+                                            text_delete(white_message_id);
+                                        white_message_id = text_create("Checkmate!", 40, 20, Align_Center);
+
+                                        white_check_state = CS_CheckMate;
                                     }
-
-                                    grid_sq->piece = held_piece;
-                                    grid_sq->piece_sprite = held_sprite;
-
-                                    sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
-                                    held_piece.type = Piece_None;
-                                    held_sprite = 0;
-
-                                    held_last_col = -1;
-                                    held_last_row = -1;
-
-                                    bool now_in_check = check_for_check(!grid_sq->piece.white, grid);
-                                    bool any_safe_moves = check_for_safe_moves(!grid_sq->piece.white);
-                                    if (now_in_check && !any_safe_moves)
+                                }
+                                else if (now_in_check && any_safe_moves)
+                                {
+                                    if (white_check_state != CS_Check)
                                     {
-                                        if (check_state != CS_CheckMate)
-                                        {
-                                            if (message_id != 0)
-                                                text_delete(message_id);
-                                            message_id = text_create("Checkmate!", 80, 20, Align_Center);
+                                        if (white_message_id != 0)
+                                            text_delete(white_message_id);
+                                        white_message_id = text_create("Check", 40, 20, Align_Center);
 
-                                            check_state = CS_CheckMate;
-                                        }
+                                        white_check_state = CS_Check;
                                     }
-                                    else if (now_in_check && any_safe_moves)
+                                }
+                                else if (!now_in_check && !any_safe_moves)
+                                {
+                                    if (white_check_state != CS_StaleMate)
                                     {
-                                        if (check_state != CS_Check)
-                                        {
-                                            if (message_id != 0)
-                                                text_delete(message_id);
-                                            message_id = text_create("Check", 80, 20, Align_Center);
+                                        if (white_message_id != 0)
+                                            text_delete(white_message_id);
+                                        white_message_id = text_create("Stalemate", 40, 20, Align_Center);
 
-                                            check_state = CS_Check;
-                                        }
+                                        white_check_state = CS_StaleMate;
                                     }
-                                    else if (!now_in_check && !any_safe_moves)
+                                }
+                                else
+                                {
+                                    if (white_check_state != CS_None)
                                     {
-                                        if (check_state != CS_StaleMate)
-                                        {
-                                            if (message_id != 0)
-                                                text_delete(message_id);
-                                            message_id = text_create("Stalemate", 80, 20, Align_Center);
+                                        if (white_message_id != 0)
+                                            text_delete(white_message_id);
+                                        white_message_id = 0;
 
-                                            check_state = CS_StaleMate;
-                                        }
+                                        white_check_state = CS_None;
                                     }
-                                    else
-                                    {
-                                        if (check_state != CS_None)
-                                        {
-                                            if (message_id != 0)
-                                                text_delete(message_id);
+                                }
+                            }
 
-                                            check_state = CS_None;
-                                        }
+                            // black
+                            {
+                                bool now_in_check = check_for_check(false, grid);
+                                bool any_safe_moves = check_for_safe_moves(false);
+                                if (now_in_check && !any_safe_moves)
+                                {
+                                    if (black_check_state != CS_CheckMate)
+                                    {
+                                        if (black_message_id != 0)
+                                            text_delete(black_message_id);
+                                        black_message_id = text_create("Checkmate!", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
+
+                                        black_check_state = CS_CheckMate;
+                                    }
+                                }
+                                else if (now_in_check && any_safe_moves)
+                                {
+                                    if (black_check_state != CS_Check)
+                                    {
+                                        if (black_message_id != 0)
+                                            text_delete(black_message_id);
+                                        black_message_id = text_create("Check", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
+
+                                        black_check_state = CS_Check;
+                                    }
+                                }
+                                else if (!now_in_check && !any_safe_moves)
+                                {
+                                    if (black_check_state != CS_StaleMate)
+                                    {
+                                        if (black_message_id != 0)
+                                            text_delete(black_message_id);
+                                        black_message_id = text_create("Stalemate", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
+
+                                        black_check_state = CS_StaleMate;
+                                    }
+                                }
+                                else
+                                {
+                                    if (black_check_state != CS_None)
+                                    {
+                                        if (black_message_id != 0)
+                                            text_delete(black_message_id);
+                                        black_message_id = 0;
+
+                                        black_check_state = CS_None;
                                     }
                                 }
                             }

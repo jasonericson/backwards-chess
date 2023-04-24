@@ -10,13 +10,14 @@
 #include <stdlib.h>
 
 GLuint shaderProgramId;
-GLint vertexLoc, uvLoc;
+GLint vertexLoc, uvLoc, tintLoc;
 
 struct SpriteMap
 {
-    GLuint vao, vbo, ubo, tex_id;
-    int16 vertices[12 * SPRITE_MAX];
-    float uvs[12 * SPRITE_MAX];
+    GLuint vao, vbo, ubo, tbo, tex_id;
+    int16 vertices[12 * SPRITE_MAX * SPRITE_LAYERS];
+    float uvs[12 * SPRITE_MAX * SPRITE_LAYERS];
+    float tints[4 * SPRITE_MAX * SPRITE_LAYERS];
 };
 
 SpriteMap maps[2];
@@ -35,10 +36,13 @@ const char* vertexShader =
 #endif
 "in vec2 vert;\n"
 "in vec2 _uv;\n"
+"in vec3 _tint;\n"
 "out vec2 uv;\n"
+"out vec3 tint;\n"
 "void main()\n"
 "{\n"
 "    uv = _uv;\n"
+"    tint = _tint;\n"
 "    gl_Position = vec4(vert.x / 320.0 - 1.0, vert.y / 320.0 - 1.0, 0.0, 1.0);\n"
 "}\n";
 
@@ -53,10 +57,11 @@ const char* fragmentShader =
 #endif
 "out vec4 color;\n"
 "in vec2 uv;\n"
+"in vec3 tint;\n"
 "uniform sampler2D tex;\n"
 "void main()\n"
 "{\n"
-"    color = texture(tex, uv);\n"
+"    color = texture(tex, uv) * vec4(tint, 1);\n"
 "}\n";
 
 GLuint compileShader(const GLchar* source, GLuint shaderType)
@@ -143,6 +148,7 @@ void render_init()
 
     vertexLoc = glGetAttribLocation(shaderProgramId, "vert");
     uvLoc = glGetAttribLocation(shaderProgramId, "_uv");
+    tintLoc = glGetAttribLocation(shaderProgramId, "_tint");
 
     for (int i = 0; i < 2; ++i)
     {
@@ -164,6 +170,7 @@ void render_init()
         glGenVertexArrays(1, &map->vao);
         glGenBuffers(1, &map->vbo);
         glGenBuffers(1, &map->ubo);
+        glGenBuffers(1, &map->tbo);
         glBindVertexArray(map->vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
@@ -174,8 +181,13 @@ void render_init()
         glBufferData(GL_ARRAY_BUFFER, sizeof(map->uvs), map->uvs, GL_DYNAMIC_DRAW);
         glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_TRUE, 2 * sizeof(GLfloat), 0);
 
+        glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(map->tints), map->tints, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(tintLoc, 3, GL_FLOAT, GL_TRUE, 3 * sizeof(GLfloat), 0);
+
         glEnableVertexAttribArray(vertexLoc);
         glEnableVertexAttribArray(uvLoc);
+        glEnableVertexAttribArray(tintLoc);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -272,6 +284,14 @@ void render_update()
 
                 map->uvs[offset + 10] = sprite->tex->u1;
                 map->uvs[offset + 11] = sprite->tex->v2;
+
+                for (int i = 0; i < 6; ++i)
+                {
+                    int sub_offset = 18 * j + 18 * sprite_count + i * 3;
+                    map->tints[sub_offset + 0] = sprite->r;
+                    map->tints[sub_offset + 1] = sprite->g;
+                    map->tints[sub_offset + 2] = sprite->b;
+                }
             }
 
             sprite_count += sprite_array->count;
@@ -284,6 +304,8 @@ void render_update()
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_count * 12, map->vertices);
         glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_count * 12, map->uvs);
+        glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_count * 18, map->tints);
         glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_count);
     }
 

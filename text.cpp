@@ -37,7 +37,7 @@ void text_init()
     texts.count = 0;
 }
 
-uint32 text_create(const char* text, short x, short y, TextAlign align /* = Align_Left */)
+uint32 text_create(const char* text, short x, short y, TextAlign align /* = Align_Left */, float r, float g, float b)
 {
     char* next_char = (char*)text;
     short next_x = x;
@@ -72,7 +72,7 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
     uint32 curr_id = 0;
     while (*next_char != 0)
     {
-        curr_id = sprite_create(&characters[*next_char], next_x, y, 1);
+        curr_id = sprite_create(&characters[*next_char], next_x, y, 1, r, g, b);
         if (start_id == 0)
             start_id = curr_id;
 
@@ -86,6 +86,7 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
         uint32 this_id = text_next_id;
         texts.data[texts.count] = { this_id, start_id, end_id };
         ++texts.count;
+        ++text_next_id;
 
         return this_id;
     }

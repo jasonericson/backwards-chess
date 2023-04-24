@@ -452,6 +452,13 @@ bool check_for_check(bool white, GridSquare (&state)[8][8])
     return false;
 }
 
+void test_move(uint16 src_col, uint16 src_row, uint16 dst_col, uint16 dst_row)
+{
+    SDL_memcpy(test_state, grid, sizeof(GridSquare) * 8 * 8);
+    test_state[dst_col][dst_row].piece = test_state[src_col][src_row].piece;
+    test_state[src_col][src_row].piece.type = Piece_None;
+}
+
 bool check_for_safe_moves(bool white)
 {
     for (uint16 col = 0; col < 8; ++col)
@@ -468,14 +475,78 @@ bool check_for_safe_moves(bool white)
                     check_col = col + 1;
                     if (check_col < 8 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != white))
                     {
-                        SDL_memcpy(test_state, grid, sizeof(GridSquare) * 8 * 8);
-                        test_state[col][row].piece.type = Piece_None;
-                        test_state[check_col][row].piece.type = Piece_King;
-                        test_state[check_col][row].piece.white = white;
-
+                        test_move(col, row, check_col, row);
                         if (check_for_check(white, test_state) == false)
                             return true;
                     }
+
+                    // left
+                    check_col = col - 1;
+                    if (check_col >= 0 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != white))
+                    {
+                        test_move(col, row, check_col, row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // up
+                    check_row = row + 1;
+                    if (check_row < 8 && (grid[col][check_row].piece.type == Piece_None || grid[col][check_row].piece.white != white))
+                    {
+                        test_move(col, row, col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // down
+                    check_row = row - 1;
+                    if (check_row >= 0 && (grid[col][check_row].piece.type == Piece_None || grid[col][check_row].piece.white != white))
+                    {
+                        test_move(col, row, col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // right-up
+                    check_col = col + 1;
+                    check_row = row + 1;
+                    if (check_col < 8 && check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // right-down
+                    check_col = col + 1;
+                    check_row = row - 1;
+                    if (check_col < 8 && check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // left-down
+                    check_col = col - 1;
+                    check_row = row - 1;
+                    if (check_col >= 0 && check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // left-up
+                    check_col = col - 1;
+                    check_row = row + 1;
+                    if (check_col >= 0 && check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
                     break;
                 default:
                     break;

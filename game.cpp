@@ -68,6 +68,8 @@ short grid_pos_x, grid_pos_y;
 
 Piece held_piece;
 uint32 held_sprite;
+int16 held_last_col;
+int16 held_last_row;
 
 uint32 king_panel_sprite, queen_panel_sprite, bishop_panel_sprite, knight_panel_sprite, rook_panel_sprite, pawn_panel_sprite;
 bool panel_white = true;
@@ -452,6 +454,12 @@ bool check_for_check(bool white, GridSquare (&state)[8][8])
     return false;
 }
 
+void test_add(Piece piece, uint16 col, uint16 row)
+{
+    SDL_memcpy(test_state, grid, sizeof(GridSquare) * 8 * 8);
+    test_state[col][row].piece = piece;
+}
+
 void test_move(uint16 src_col, uint16 src_row, uint16 dst_col, uint16 dst_row)
 {
     SDL_memcpy(test_state, grid, sizeof(GridSquare) * 8 * 8);
@@ -461,16 +469,18 @@ void test_move(uint16 src_col, uint16 src_row, uint16 dst_col, uint16 dst_row)
 
 bool check_for_safe_moves(bool white)
 {
+    int piece_count = 0;
     for (uint16 col = 0; col < 8; ++col)
     {
         for (uint16 row = 0; row < 8; ++row)
         {
             if (grid[col][row].piece.type != Piece_None && grid[col][row].piece.white == white)
             {
+                ++piece_count;
                 int16 check_col, check_row;
-                switch (grid[col][row].piece.type)
+
+                if (grid[col][row].piece.type == Piece_King)
                 {
-                case Piece_King:
                     // right
                     check_col = col + 1;
                     if (check_col < 8 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != white))
@@ -546,16 +556,405 @@ bool check_for_safe_moves(bool white)
                         if (check_for_check(white, test_state) == false)
                             return true;
                     }
+                }
+                else if (grid[col][row].piece.type == Piece_Pawn)
+                {
+                    // right
+                    check_col = col + 1;
+                    if (check_col < 8 && grid[check_col][row].piece.type == Piece_None)
+                    {
+                        test_move(col, row, check_col, row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
 
-                    break;
-                default:
-                    break;
+                    // left
+                    check_col = col - 1;
+                    if (check_col >= 0 && grid[check_col][row].piece.type == Piece_None)
+                    {
+                        test_move(col, row, check_col, row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // up
+                    check_row = row + 1;
+                    if (check_row < 8 && grid[col][check_row].piece.type == Piece_None)
+                    {
+                        test_move(col, row, col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // down
+                    check_row = row - 1;
+                    if (check_row >= 0 && grid[col][check_row].piece.type == Piece_None)
+                    {
+                        test_move(col, row, col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // right-up
+                    check_col = col + 1;
+                    check_row = row + 1;
+                    if (check_col < 8 && check_row < 8 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // right-down
+                    check_col = col + 1;
+                    check_row = row - 1;
+                    if (check_col < 8 && check_row >= 0 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // left-down
+                    check_col = col - 1;
+                    check_row = row - 1;
+                    if (check_col >= 0 && check_row >= 0 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+
+                    // left-up
+                    check_col = col - 1;
+                    check_row = row + 1;
+                    if (check_col >= 0 && check_row < 8 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+                }
+                else if (grid[col][row].piece.type == Piece_Knight)
+                {
+                    // knight right
+                    check_col = col + 2;
+                    if (check_col < 8)
+                    {
+                        // right-up
+                        check_row = row + 1;
+                        if (check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+
+                        // right-down
+                        check_row = row - 1;
+                        if (check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+                    }
+
+                    // knight left
+                    check_col = col - 2;
+                    if (check_col >= 0)
+                    {
+                        // left-up
+                        check_row = row + 1;
+                        if (check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+
+                        // left-down
+                        check_row = row - 1;
+                        if (check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+                    }
+
+                    // knight up
+                    check_row = row + 2;
+                    if (check_row < 8)
+                    {
+                        // up-right
+                        check_col = col + 1;
+                        if (check_col < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+
+                        // up-left
+                        check_col = col - 1;
+                        if (check_col >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+                    }
+
+                    // knight down
+                    check_row = row - 2;
+                    if (check_row >= 0)
+                    {
+                        // down-right
+                        check_col = col + 1;
+                        if (check_col < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+
+                        // down-left
+                        check_col = col - 1;
+                        if (check_col >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
+                        {
+                            test_move(col, row, check_col, check_row);
+                            if (check_for_check(white, test_state) == false)
+                                return true;
+                        }
+                    }
+                }
+                else
+                {
+                    // orthogonal movers (queen & rook)
+                    if (grid[col][row].piece.type == Piece_Queen || grid[col][row].piece.type == Piece_Rook)
+                    {
+                        // right
+                        check_col = col + 1;
+                        while (check_col < 8)
+                        {
+                            if (grid[check_col][row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, check_col, row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[check_col][row].piece.white != white)
+                                {
+                                    test_move(col, row, check_col, row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            ++check_col;
+                        }
+                        
+                        // left
+                        check_col = col - 1;
+                        while (check_col >= 0)
+                        {
+                            if (grid[check_col][row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, check_col, row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[check_col][row].piece.white != white)
+                                {
+                                    test_move(col, row, check_col, row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            --check_col;
+                        }
+                        
+                        // up
+                        check_row = row + 1;
+                        while (check_row < 8)
+                        {
+                            if (grid[col][check_row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, col, check_row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[col][check_row].piece.white != white)
+                                {
+                                    test_move(col, row, col, check_row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            ++check_row;
+                        }
+                        
+                        // down
+                        check_row = row - 1;
+                        while (check_row >= 0)
+                        {
+                            if (grid[col][check_row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, col, check_row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[col][check_row].piece.white != white)
+                                {
+                                    test_move(col, row, col, check_row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            --check_row;
+                        }
+                    }
+
+                    // diagonal movers (queen & bishop)
+                    if (grid[col][row].piece.type == Piece_Queen || grid[col][row].piece.type == Piece_Bishop)
+                    {
+                        // right-up
+                        check_col = col + 1;
+                        check_row = row + 1;
+                        while (check_col < 8 && check_row < 8)
+                        {
+                            if (grid[check_col][check_row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, check_col, check_row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[check_col][check_row].piece.white != white)
+                                {
+                                    test_move(col, row, check_col, check_row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            ++check_col;
+                            ++check_row;
+                        }
+                        
+                        // right-down
+                        check_col = col + 1;
+                        check_row = row - 1;
+                        while (check_col < 8 && check_row >= 0)
+                        {
+                            if (grid[check_col][check_row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, check_col, check_row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[check_col][check_row].piece.white != white)
+                                {
+                                    test_move(col, row, check_col, check_row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            ++check_col;
+                            --check_row;
+                        }
+                        
+                        // left-down
+                        check_col = col - 1;
+                        check_row = row - 1;
+                        while (check_col >= 0 && check_row >= 0)
+                        {
+                            if (grid[check_col][check_row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, check_col, check_row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[check_col][check_row].piece.white != white)
+                                {
+                                    test_move(col, row, check_col, check_row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            --check_col;
+                            --check_row;
+                        }
+                        
+                        // left-up
+                        check_col = col - 1;
+                        check_row = row + 1;
+                        while (check_col >= 0 && check_row < 8)
+                        {
+                            if (grid[check_col][check_row].piece.type == Piece_None)
+                            {
+                                test_move(col, row, check_col, check_row);
+                                if (check_for_check(white, test_state) == false)
+                                    return true;
+                            }
+                            else
+                            {
+                                if (grid[check_col][check_row].piece.white != white)
+                                {
+                                    test_move(col, row, check_col, check_row);
+                                    if (check_for_check(white, test_state) == false)
+                                        return true;
+                                }
+
+                                break;
+                            }
+
+                            --check_col;
+                            ++check_row;
+                        }
+                    }
                 }
             }
         }
     }
 
-    return false;
+    if (piece_count > 0)
+        return false;
+    else
+        return true;
 }
 
 void game_update()
@@ -589,6 +988,8 @@ void game_update()
                         }
                         held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, 2);
                         held_piece = sq.piece;
+                        held_last_col = -1;
+                        held_last_row = -1;
                     }
                     break;
                 case Action_GridSquare:
@@ -600,62 +1001,83 @@ void game_update()
                         // if space is blank OR has opponent piece
                         if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
                         {
-                            // get rid of opponent piece
-                            if (grid_sq->piece_sprite != 0)
+                            // if we're just putting back, skip all the checks
+                            if (sq.grid_col == held_last_col && sq.grid_row == held_last_row)
                             {
-                                sprite_delete(grid_sq->piece_sprite);
-                            }
+                                grid_sq->piece = held_piece;
+                                grid_sq->piece_sprite = held_sprite;
 
-                            grid_sq->piece = held_piece;
-                            grid_sq->piece_sprite = held_sprite;
-
-                            sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
-                            held_piece.type = Piece_None;
-                            held_sprite = 0;
-
-                            bool now_in_check = check_for_check(true, grid);
-                            bool next_in_check = !check_for_safe_moves(true);
-                            if (now_in_check && next_in_check)
-                            {
-                                if (check_state != CS_CheckMate)
-                                {
-                                    if (message_id != 0)
-                                        text_delete(message_id);
-                                    message_id = text_create("Checkmate!", 80, 20, Align_Center);
-
-                                    check_state = CS_CheckMate;
-                                }
-                            }
-                            else if (now_in_check && !next_in_check)
-                            {
-                                if (check_state != CS_Check)
-                                {
-                                    if (message_id != 0)
-                                        text_delete(message_id);
-                                    message_id = text_create("Check", 80, 20, Align_Center);
-
-                                    check_state = CS_Check;
-                                }
-                            }
-                            else if (!now_in_check && next_in_check)
-                            {
-                                if (check_state != CS_StaleMate)
-                                {
-                                    if (message_id != 0)
-                                        text_delete(message_id);
-                                    message_id = text_create("Stalemate", 80, 20, Align_Center);
-
-                                    check_state = CS_StaleMate;
-                                }
+                                sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
+                                held_piece.type = Piece_None;
+                                held_sprite = 0;
                             }
                             else
                             {
-                                if (check_state != CS_None)
+                                // validate move first
+                                test_add(held_piece, sq.grid_col, sq.grid_row);
+                                if (!check_for_check(held_piece.white, test_state))
                                 {
-                                    if (message_id != 0)
-                                        text_delete(message_id);
+                                    // get rid of opponent piece
+                                    if (grid_sq->piece_sprite != 0)
+                                    {
+                                        sprite_delete(grid_sq->piece_sprite);
+                                    }
 
-                                    check_state = CS_None;
+                                    grid_sq->piece = held_piece;
+                                    grid_sq->piece_sprite = held_sprite;
+
+                                    sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
+                                    held_piece.type = Piece_None;
+                                    held_sprite = 0;
+
+                                    held_last_col = -1;
+                                    held_last_row = -1;
+
+                                    bool now_in_check = check_for_check(!grid_sq->piece.white, grid);
+                                    bool any_safe_moves = check_for_safe_moves(!grid_sq->piece.white);
+                                    if (now_in_check && !any_safe_moves)
+                                    {
+                                        if (check_state != CS_CheckMate)
+                                        {
+                                            if (message_id != 0)
+                                                text_delete(message_id);
+                                            message_id = text_create("Checkmate!", 80, 20, Align_Center);
+
+                                            check_state = CS_CheckMate;
+                                        }
+                                    }
+                                    else if (now_in_check && any_safe_moves)
+                                    {
+                                        if (check_state != CS_Check)
+                                        {
+                                            if (message_id != 0)
+                                                text_delete(message_id);
+                                            message_id = text_create("Check", 80, 20, Align_Center);
+
+                                            check_state = CS_Check;
+                                        }
+                                    }
+                                    else if (!now_in_check && !any_safe_moves)
+                                    {
+                                        if (check_state != CS_StaleMate)
+                                        {
+                                            if (message_id != 0)
+                                                text_delete(message_id);
+                                            message_id = text_create("Stalemate", 80, 20, Align_Center);
+
+                                            check_state = CS_StaleMate;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (check_state != CS_None)
+                                        {
+                                            if (message_id != 0)
+                                                text_delete(message_id);
+
+                                            check_state = CS_None;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -666,6 +1088,9 @@ void game_update()
                         held_piece = grid[sq.grid_col][sq.grid_row].piece;
                         held_sprite = grid[sq.grid_col][sq.grid_row].piece_sprite;
                         sprite_set_layer(held_sprite, 2);
+
+                        held_last_col = sq.grid_col;
+                        held_last_row = sq.grid_row;
 
                         grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
                         grid[sq.grid_col][sq.grid_row].piece_sprite = 0;

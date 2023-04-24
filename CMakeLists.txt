@@ -17,6 +17,10 @@ else ()
     target_link_libraries(BackwardsChess PRIVATE libglew_static)
 endif ()
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif ()
+
 target_link_libraries(BackwardsChess
     PRIVATE SDL2::SDL2
     PRIVATE SDL2::SDL2main

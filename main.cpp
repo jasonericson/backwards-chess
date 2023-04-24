@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
             }
             else if (event.type == SDL_KEYDOWN)
             {
-                if (event.key.keysym.sym == SDL_KeyCode::SDLK_SPACE)
+                if (event.key.keysym.sym == SDLK_SPACE)
                 {
                     g_space_down = true;
                 }

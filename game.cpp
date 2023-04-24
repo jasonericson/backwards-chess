@@ -535,7 +535,7 @@ void game_update()
 
     if (held_sprite != 0)
     {
-        sprite_set_pos(held_sprite, g_mouse_real_x - 28, g_mouse_real_y - 28, true);
+        sprite_set_pos(held_sprite, g_mouse_raw_x - 28, g_mouse_raw_y - 28, true);
     }
 }
 

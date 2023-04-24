@@ -11,7 +11,7 @@
 
 bool g_mouse_down = false;
 bool g_space_down = false;
-int g_mouse_x, g_mouse_y, g_mouse_real_x, g_mouse_real_y;
+int g_mouse_x, g_mouse_y, g_mouse_raw_x, g_mouse_raw_y;
 
 SDL_Cursor* hand_cursor;
 
@@ -43,10 +43,10 @@ int main(int argc, char* argv[])
     {
         Uint64 start = SDL_GetPerformanceCounter();
 
-        SDL_GetMouseState(&g_mouse_real_x, &g_mouse_real_y);
-        g_mouse_real_y = 640 - g_mouse_real_y;
-        g_mouse_x = g_mouse_real_x / 4;
-        g_mouse_y = g_mouse_real_y / 4;
+        SDL_GetMouseState(&g_mouse_raw_x, &g_mouse_raw_y);
+        g_mouse_raw_y = 640 - g_mouse_raw_y;
+        g_mouse_x = g_mouse_raw_x / 4;
+        g_mouse_y = g_mouse_raw_y / 4;
 
         g_mouse_down = false;
         g_space_down = false;

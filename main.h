@@ -8,8 +8,8 @@ typedef unsigned int    uint32;
 extern bool g_mouse_down;
 extern int g_mouse_x;
 extern int g_mouse_y;
-extern int g_mouse_real_x;
-extern int g_mouse_real_y;
+extern int g_mouse_raw_x;
+extern int g_mouse_raw_y;
 
 extern bool g_space_down;
 

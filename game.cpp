@@ -52,6 +52,7 @@ struct GridSquare
 };
 
 GridSquare grid[8][8];
+GridSquare test_state[8][8];
 
 struct ClickySquare
 {
@@ -72,6 +73,13 @@ uint32 king_panel_sprite, queen_panel_sprite, bishop_panel_sprite, knight_panel_
 bool panel_white = true;
 
 uint32 message_id = 0;
+enum CheckState
+{
+    CS_None,
+    CS_Check,
+    CS_CheckMate,
+    CS_StaleMate,
+} check_state;
 bool in_check = false;
 
 void setup_panel(bool white)
@@ -131,7 +139,7 @@ void game_init()
     held_sprite = 0;
 }
 
-bool check_for_check(bool white)
+bool check_for_check(bool white, GridSquare (&state)[8][8])
 {
     short king_row = -1;
     short king_col = -1;
@@ -141,7 +149,7 @@ bool check_for_check(bool white)
     {
         for (short col = 0; col < 8; ++col)
         {
-            if (grid[col][row].piece.type == Piece_King && grid[col][row].piece.white == white)
+            if (state[col][row].piece.type == Piece_King && state[col][row].piece.white == white)
             {
                 king_row = row;
                 king_col = col;
@@ -161,7 +169,7 @@ bool check_for_check(bool white)
     int16 check_col = king_col + 1;
     while (check_col < 8)
     {
-        GridSquare* sq = &grid[check_col][king_row];
+        GridSquare* sq = &state[check_col][king_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -182,7 +190,7 @@ bool check_for_check(bool white)
     check_col = king_col - 1;
     while (check_col >= 0)
     {
-        GridSquare* sq = &grid[check_col][king_row];
+        GridSquare* sq = &state[check_col][king_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -203,7 +211,7 @@ bool check_for_check(bool white)
     int16 check_row = king_row + 1;
     while (check_row < 8)
     {
-        GridSquare* sq = &grid[king_col][check_row];
+        GridSquare* sq = &state[king_col][check_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -224,7 +232,7 @@ bool check_for_check(bool white)
     check_row = king_row - 1;
     while (check_row >= 0)
     {
-        GridSquare* sq = &grid[king_col][check_row];
+        GridSquare* sq = &state[king_col][check_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -246,7 +254,7 @@ bool check_for_check(bool white)
     check_row = king_row + 1;
     while (check_col < 8 && check_row < 8)
     {
-        GridSquare* sq = &grid[check_col][check_row];
+        GridSquare* sq = &state[check_col][check_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -269,7 +277,7 @@ bool check_for_check(bool white)
     check_row = king_row - 1;
     while (check_col < 8 && check_row >= 0)
     {
-        GridSquare* sq = &grid[check_col][check_row];
+        GridSquare* sq = &state[check_col][check_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -292,7 +300,7 @@ bool check_for_check(bool white)
     check_row = king_row - 1;
     while (check_col >= 0 && check_row >= 0)
     {
-        GridSquare* sq = &grid[check_col][check_row];
+        GridSquare* sq = &state[check_col][check_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -315,7 +323,7 @@ bool check_for_check(bool white)
     check_row = king_row + 1;
     while (check_col >= 0 && check_row < 8)
     {
-        GridSquare* sq = &grid[check_col][check_row];
+        GridSquare* sq = &state[check_col][check_row];
         if (sq->piece.type != Piece_None)
         {
             if (sq->piece.white != white)
@@ -341,7 +349,7 @@ bool check_for_check(bool white)
         check_row = king_row + 1;
         if (check_row < 8)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -352,7 +360,7 @@ bool check_for_check(bool white)
         check_row = king_row - 1;
         if (check_row >= 0)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -368,7 +376,7 @@ bool check_for_check(bool white)
         check_row = king_row + 1;
         if (check_row < 8)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -379,7 +387,7 @@ bool check_for_check(bool white)
         check_row = king_row - 1;
         if (check_row >= 0)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -395,7 +403,7 @@ bool check_for_check(bool white)
         check_col = king_col + 1;
         if (check_col < 8)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -406,7 +414,7 @@ bool check_for_check(bool white)
         check_col = king_col - 1;
         if (check_col >= 0)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -422,7 +430,7 @@ bool check_for_check(bool white)
         check_col = king_col + 1;
         if (check_col < 8)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
@@ -433,10 +441,45 @@ bool check_for_check(bool white)
         check_col = king_col - 1;
         if (check_col >= 0)
         {
-            GridSquare* sq = &grid[check_col][check_row];
+            GridSquare* sq = &state[check_col][check_row];
             if (sq->piece.type == Piece_Knight && sq->piece.white != white)
             {
                 return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool check_for_safe_moves(bool white)
+{
+    for (uint16 col = 0; col < 8; ++col)
+    {
+        for (uint16 row = 0; row < 8; ++row)
+        {
+            if (grid[col][row].piece.type != Piece_None && grid[col][row].piece.white == white)
+            {
+                int16 check_col, check_row;
+                switch (grid[col][row].piece.type)
+                {
+                case Piece_King:
+                    // right
+                    check_col = col + 1;
+                    if (check_col < 8 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != white))
+                    {
+                        SDL_memcpy(test_state, grid, sizeof(GridSquare) * 8 * 8);
+                        test_state[col][row].piece.type = Piece_None;
+                        test_state[check_col][row].piece.type = Piece_King;
+                        test_state[check_col][row].piece.white = white;
+
+                        if (check_for_check(white, test_state) == false)
+                            return true;
+                    }
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
@@ -499,25 +542,49 @@ void game_update()
                             held_piece.type = Piece_None;
                             held_sprite = 0;
 
-                            if (check_for_check(true) || check_for_check(false))
+                            bool now_in_check = check_for_check(true, grid);
+                            bool next_in_check = !check_for_safe_moves(true);
+                            if (now_in_check && next_in_check)
                             {
-                                if (!in_check)
+                                if (check_state != CS_CheckMate)
+                                {
+                                    if (message_id != 0)
+                                        text_delete(message_id);
+                                    message_id = text_create("Checkmate!", 80, 20, Align_Center);
+
+                                    check_state = CS_CheckMate;
+                                }
+                            }
+                            else if (now_in_check && !next_in_check)
+                            {
+                                if (check_state != CS_Check)
                                 {
                                     if (message_id != 0)
                                         text_delete(message_id);
                                     message_id = text_create("Check", 80, 20, Align_Center);
 
-                                    in_check = true;
+                                    check_state = CS_Check;
+                                }
+                            }
+                            else if (!now_in_check && next_in_check)
+                            {
+                                if (check_state != CS_StaleMate)
+                                {
+                                    if (message_id != 0)
+                                        text_delete(message_id);
+                                    message_id = text_create("Stalemate", 80, 20, Align_Center);
+
+                                    check_state = CS_StaleMate;
                                 }
                             }
                             else
                             {
-                                if (in_check)
+                                if (check_state != CS_None)
                                 {
                                     if (message_id != 0)
                                         text_delete(message_id);
 
-                                    in_check = false;
+                                    check_state = CS_None;
                                 }
                             }
                         }

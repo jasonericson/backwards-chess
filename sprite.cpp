@@ -23,6 +23,7 @@ uint32 sprite_create(Texture* tex, short x, short y)
     array->data[array->count].x = x;
     array->data[array->count].y = y;
     array->data[array->count].tex = tex;
+    array->data[array->count].smooth_pos = false;
 
     ++array->count;
     ++next_id;
@@ -57,7 +58,7 @@ void sprite_delete(uint32 id)
 
 }
 
-void sprite_set_pos(uint32 id, short x, short y)
+void sprite_set_pos(uint32 id, short x, short y, bool smooth)
 {
     for (int map_id = 0; map_id < 2; ++map_id)
     {
@@ -69,6 +70,7 @@ void sprite_set_pos(uint32 id, short x, short y)
             {
                 array->data[i].x = x;
                 array->data[i].y = y;
+                array->data[i].smooth_pos = smooth;
 
                 found = true;
                 break;

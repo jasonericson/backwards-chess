@@ -971,7 +971,7 @@ void game_update()
     for (int i = 0; i < 70; ++i)
     {
         ClickySquare sq = clicky_squares[i];
-        if (g_mouse_x > sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y > sq.y && g_mouse_y < sq.y + sq.height)
+        if (g_mouse_x >= sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y >= sq.y && g_mouse_y < sq.y + sq.height)
         {
             hovering = true;
             cursor_set(true);

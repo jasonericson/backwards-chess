@@ -973,8 +973,20 @@ void game_update()
         ClickySquare sq = clicky_squares[i];
         if (g_mouse_x >= sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y >= sq.y && g_mouse_y < sq.y + sq.height)
         {
-            hovering = true;
-            cursor_set(true);
+            switch (sq.action)
+            {
+            case Action_GrabPiece:
+                hovering = true;
+                break;
+            case Action_GridSquare:
+                if (held_piece.type != Piece_None || grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
+                    hovering = true;
+                break;
+            default:
+                hovering = true;
+                break;
+            }
+
             if (g_mouse_down)
             {
                 switch (sq.action)
@@ -1144,7 +1156,11 @@ void game_update()
         }
     }
 
-    if (!hovering)
+    if (hovering)
+    {
+        cursor_set(true);
+    }
+    else
     {
         cursor_set(false);
         if (g_mouse_down)

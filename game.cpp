@@ -1142,10 +1142,17 @@ void game_update()
 
             break;
         }
+    }
 
-        if (!hovering)
+    if (!hovering)
+    {
+        cursor_set(false);
+        if (g_mouse_down)
         {
-            cursor_set(false);
+            held_piece.type = Piece_None;
+            if (held_sprite != 0)
+                sprite_delete(held_sprite);
+            held_sprite = 0;
         }
     }
 

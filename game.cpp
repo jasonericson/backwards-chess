@@ -54,10 +54,20 @@ struct GridSquare
 GridSquare grid[8][8];
 GridSquare test_state[8][8];
 
+struct PieceButton
+{
+    Piece piece;
+    uint32 piece_sprite;
+};
+
+PieceButton piece_buttons[7];
+
 struct ClickySquare
 {
     short x, y, width, height;
     Action action;
+    bool enabled;
+    void* data;
     Piece piece;
     short grid_col, grid_row;
 };
@@ -71,7 +81,6 @@ uint32 held_sprite;
 int16 held_last_col;
 int16 held_last_row;
 
-uint32 king_panel_sprite, queen_panel_sprite, bishop_panel_sprite, knight_panel_sprite, rook_panel_sprite, pawn_panel_sprite;
 bool panel_white = true;
 
 uint32 white_message_id = 0;
@@ -87,41 +96,37 @@ CheckState white_check_state;
 CheckState black_check_state;
 bool in_check = false;
 
-void setup_panel(bool white)
+void setup_panel()
+{
+    panel_white = true;
+
+    const short piece_panel_x = 4;
+    short next_panel_y = 160 - 4 - 14;
+
+    for (PieceType p = Piece_King; p > Piece_None; p = (PieceType)(p - 1))
+    {
+        piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p][true], piece_panel_x, next_panel_y, 1) };
+        clicky_squares[p - 1] = ClickySquare { piece_panel_x, next_panel_y, 14, 14, Action::Action_GrabPiece, true, &piece_buttons[p - 1] };
+        next_panel_y = next_panel_y - 2 - 14;
+    }
+}
+
+void switch_panel_color(bool white)
 {
     if (panel_white == white)
         return;
 
     panel_white = white;
 
-    const short piece_panel_x = 4;
-    const short king_panel_y = 160 - 4 - 14;
-    const short queen_panel_y = king_panel_y - 2 - 14;
-    const short bishop_panel_y = queen_panel_y - 2 - 14;
-    const short knight_panel_y = bishop_panel_y - 2 - 14;
-    const short rook_panel_y = knight_panel_y - 2 - 14;
-    const short pawn_panel_y = rook_panel_y - 2 - 14;
-
-    sprite_delete(king_panel_sprite);
-    sprite_delete(queen_panel_sprite);
-    sprite_delete(bishop_panel_sprite);
-    sprite_delete(knight_panel_sprite);
-    sprite_delete(rook_panel_sprite);
-    sprite_delete(pawn_panel_sprite);
-
-    king_panel_sprite = sprite_create(&piece_textures[Piece_King][white], piece_panel_x, king_panel_y, 1);
-    queen_panel_sprite = sprite_create(&piece_textures[Piece_Queen][white], piece_panel_x, queen_panel_y, 1);
-    bishop_panel_sprite = sprite_create(&piece_textures[Piece_Bishop][white], piece_panel_x, bishop_panel_y, 1);
-    knight_panel_sprite = sprite_create(&piece_textures[Piece_Knight][white], piece_panel_x, knight_panel_y, 1);
-    rook_panel_sprite = sprite_create(&piece_textures[Piece_Rook][white], piece_panel_x, rook_panel_y, 1);
-    pawn_panel_sprite = sprite_create(&piece_textures[Piece_Pawn][white], piece_panel_x, pawn_panel_y, 1);
-
-    clicky_squares[0] = ClickySquare { piece_panel_x, king_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_King, white } };
-    clicky_squares[1] = ClickySquare { piece_panel_x, queen_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_Queen, white } };
-    clicky_squares[2] = ClickySquare{ piece_panel_x, bishop_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_Bishop, white } };
-    clicky_squares[3] = ClickySquare{ piece_panel_x, knight_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_Knight, white } };
-    clicky_squares[4] = ClickySquare{ piece_panel_x, rook_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_Rook, white } };
-    clicky_squares[5] = ClickySquare{ piece_panel_x, pawn_panel_y, 14, 14, Action::Action_GrabPiece, { PieceType::Piece_Pawn, white } };
+    for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
+    {
+        Sprite* sprite = sprite_find(piece_buttons[p - 1].piece_sprite);
+        if (sprite != nullptr)
+        {
+            sprite->tex = &piece_textures[p][white];
+        }
+        piece_buttons[p - 1].piece.white = white;
+    }
 }
 
 void game_init()
@@ -130,13 +135,13 @@ void game_init()
     grid_pos_y = 160 - 112 - 8;
     sprite_create(&board_tex, grid_pos_x, grid_pos_y, 0);
 
-    setup_panel(false);
+    setup_panel();
 
     for (short col = 0; col < 8; ++col)
     {
         for (short row = 0; row < 8; ++row)
         {
-            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, {} , col, row };
+            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, true, nullptr, {} , col, row };
         }
     }
 
@@ -960,11 +965,45 @@ bool check_for_safe_moves(bool white)
         return true;
 }
 
+uint16 turn = 0;
+bool new_turn = true;
+
+void set_sprite_enabled(uint32 id, bool enabled)
+{
+    Sprite* sprite = sprite_find(id);
+    if (sprite != nullptr)
+    {
+        if (enabled)
+        {
+            sprite->r = 1.0f;
+            sprite->g = 1.0f;
+            sprite->b = 1.0f;
+        }
+        else
+        {
+            sprite->r = 0.5f;
+            sprite->g = 0.5f;
+            sprite->b = 0.5f;
+        }
+    }
+}
+
 void game_update()
 {
+    // if (new_turn)
+    // {
+    //     if (turn == 0)
+    //     {
+    //         set_sprite_enabled(queen_panel_sprite, false);
+    //         set_sprite_enabled(bishop_panel_sprite, false);
+    //         set_sprite_enabled(knight_panel_sprite, false);
+    //         set_sprite_enabled()
+    //     }
+    // }
+
     if (g_space_down)
     {
-        setup_panel(!panel_white);
+        switch_panel_color(!panel_white);
     }
 
     bool hovering = false;
@@ -979,17 +1018,18 @@ void game_update()
                 hovering = true;
                 if (g_mouse_down)
                 {
+                    PieceButton* btn = (PieceButton*)sq.data;
                     // grab piece from panel
-                    if (!(held_piece.type == sq.piece.type && held_piece.white == sq.piece.white))
+                    if (!(held_piece.type == btn->piece.type && held_piece.white == btn->piece.white))
                     {
-                        Texture* piece_tex = &piece_textures[sq.piece.type][sq.piece.white];
+                        Texture* piece_tex = &piece_textures[btn->piece.type][btn->piece.white];
 
                         if (held_sprite != 0)
                         {
                             sprite_delete(held_sprite);
                         }
                         held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, 2);
-                        held_piece = sq.piece;
+                        held_piece = btn->piece;
                         held_last_col = -1;
                         held_last_row = -1;
                     }

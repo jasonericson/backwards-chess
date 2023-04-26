@@ -149,3 +149,14 @@ void sprite_set_layer(uint32 id, uint16 depth_layer)
             break;
     }
 }
+
+void sprite_set_color(uint32 id, float r, float g, float b)
+{
+    Sprite* sprite = sprite_find(id);
+    if (sprite != nullptr)
+    {
+        sprite->r = r;
+        sprite->g = g;
+        sprite->b = b;
+    }
+}

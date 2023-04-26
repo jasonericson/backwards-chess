@@ -1035,15 +1035,11 @@ void set_panel_button_enabled(PieceType piece_type, bool enabled)
     {
         if (enabled)
         {
-            sprite->r = 1.0f;
-            sprite->g = 1.0f;
-            sprite->b = 1.0f;
+            sprite->a = 1.0f;
         }
         else
         {
-            sprite->r = 0.4f;
-            sprite->g = 0.4f;
-            sprite->b = 0.4f;
+            sprite->a = 0.4f;
         }
     }
 }

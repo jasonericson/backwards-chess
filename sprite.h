@@ -18,7 +18,7 @@ struct Sprite
     bool smooth_pos;
     Texture* tex;
     Uint64 timeCreated;
-    float r, g, b;
+    float r, g, b, a;
 };
 
 const int SPRITE_MAX = 128;
@@ -34,9 +34,9 @@ const uint16 SPRITE_LAYERS = 3;
 extern SpriteArray sprites[2][SPRITE_LAYERS];
 
 void sprite_init();
-uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r = 1.0f, float g = 1.0f, float b = 1.0f);
+uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
 void sprite_delete(uint32 id);
 Sprite* sprite_find(uint32 id);
 void sprite_set_pos(uint32 id, short x, short y, bool smooth = false);
 void sprite_set_layer(uint32 id, uint16 depth_layer);
-void sprite_set_color(uint32 id, float r, float g, float b);
+void sprite_set_color(uint32 id, float r, float g, float b, float a = 1.0f);

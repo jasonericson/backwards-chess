@@ -16,7 +16,7 @@ void sprite_init()
     next_id = 1;
 }
 
-uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r, float g, float b)
+uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r, float g, float b, float a)
 {
     if (depth_layer >= SPRITE_LAYERS)
         return 0;
@@ -33,6 +33,7 @@ uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r
     array->data[array->count].r = r;
     array->data[array->count].g = g;
     array->data[array->count].b = b;
+    array->data[array->count].a = a;
 
     ++array->count;
     ++next_id;
@@ -150,7 +151,7 @@ void sprite_set_layer(uint32 id, uint16 depth_layer)
     }
 }
 
-void sprite_set_color(uint32 id, float r, float g, float b)
+void sprite_set_color(uint32 id, float r, float g, float b, float a)
 {
     Sprite* sprite = sprite_find(id);
     if (sprite != nullptr)
@@ -158,5 +159,6 @@ void sprite_set_color(uint32 id, float r, float g, float b)
         sprite->r = r;
         sprite->g = g;
         sprite->b = b;
+        sprite->a = a;
     }
 }

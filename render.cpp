@@ -36,9 +36,9 @@ const char* vertexShader =
 #endif
 "in vec2 vert;\n"
 "in vec2 _uv;\n"
-"in vec3 _tint;\n"
+"in vec4 _tint;\n"
 "out vec2 uv;\n"
-"out vec3 tint;\n"
+"out vec4 tint;\n"
 "void main()\n"
 "{\n"
 "    uv = _uv;\n"
@@ -57,11 +57,11 @@ const char* fragmentShader =
 #endif
 "out vec4 color;\n"
 "in vec2 uv;\n"
-"in vec3 tint;\n"
+"in vec4 tint;\n"
 "uniform sampler2D tex;\n"
 "void main()\n"
 "{\n"
-"    color = texture(tex, uv) * vec4(tint, 1);\n"
+"    color = texture(tex, uv) * tint;\n"
 "}\n";
 
 GLuint compileShader(const GLchar* source, GLuint shaderType)
@@ -183,7 +183,7 @@ void render_init()
 
         glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(map->tints), map->tints, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(tintLoc, 3, GL_FLOAT, GL_TRUE, 3 * sizeof(GLfloat), 0);
+        glVertexAttribPointer(tintLoc, 4, GL_FLOAT, GL_TRUE, 4 * sizeof(GLfloat), 0);
 
         glEnableVertexAttribArray(vertexLoc);
         glEnableVertexAttribArray(uvLoc);
@@ -287,10 +287,11 @@ void render_update()
 
                 for (int i = 0; i < 6; ++i)
                 {
-                    int sub_offset = 18 * j + 18 * sprite_count + i * 3;
+                    int sub_offset = 24 * j + 24 * sprite_count + i * 4;
                     map->tints[sub_offset + 0] = sprite->r;
                     map->tints[sub_offset + 1] = sprite->g;
                     map->tints[sub_offset + 2] = sprite->b;
+                    map->tints[sub_offset + 3] = sprite->a;
                 }
             }
 
@@ -305,7 +306,7 @@ void render_update()
         glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_count * 12, map->uvs);
         glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_count * 18, map->tints);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_count * 24, map->tints);
         glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_count);
     }
 

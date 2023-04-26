@@ -79,7 +79,7 @@ uint32 held_sprite;
 int16 held_last_col;
 int16 held_last_row;
 
-bool panel_white = true;
+bool player_white = true;
 
 uint32 white_message_id = 0;
 uint32 black_message_id = 0;
@@ -96,7 +96,7 @@ bool in_check = false;
 
 void setup_panel()
 {
-    panel_white = true;
+    player_white = true;
 
     const short piece_panel_x = 4;
     short next_panel_y = 160 - 4 - 14;
@@ -111,10 +111,10 @@ void setup_panel()
 
 void switch_panel_color(bool white)
 {
-    if (panel_white == white)
+    if (player_white == white)
         return;
 
-    panel_white = white;
+    player_white = white;
 
     for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
     {
@@ -1024,6 +1024,7 @@ void check_for_check(bool white)
 
 uint16 turn = 0;
 bool new_turn = true;
+bool turn_move = false;
 
 void set_panel_button_enabled(PieceType piece_type, bool enabled)
 {
@@ -1059,23 +1060,29 @@ void game_update()
         {
             switch_panel_color(false);
         }
-        else if (turn == 2)
-        {
-            switch_panel_color(true);
-
-            for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
-            {
-                set_panel_button_enabled(p, true);
-            }
-
-            set_panel_button_enabled(Piece_King, false);
-        }
         else
         {
-            if ((turn - 2) % 4 == 0)
-                switch_panel_color(true);
-            else if ((turn - 2) % 4 == 2)
-                switch_panel_color(false);
+            uint16 step = (turn - 2) % 4;
+            if (step == 0 || step == 2)
+            {
+                turn_move = true;
+                for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
+                {
+                    set_panel_button_enabled(p, false);
+                }
+
+                switch_panel_color(step == 0);
+            }
+            else
+            {
+                turn_move = false;
+                for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
+                {
+                    set_panel_button_enabled(p, true);
+                }
+
+                set_panel_button_enabled(Piece_King, false);
+            }
         }
 
         ++turn;
@@ -1086,7 +1093,7 @@ void game_update()
     for (int i = 0; i < 70; ++i)
     {
         ClickySquare sq = clicky_squares[i];
-        if (g_mouse_x >= sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y >= sq.y && g_mouse_y < sq.y + sq.height && sq.enabled)
+        if (sq.enabled && g_mouse_x >= sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y >= sq.y && g_mouse_y < sq.y + sq.height)
         {
             switch (sq.action)
             {
@@ -1095,6 +1102,7 @@ void game_update()
                 if (g_mouse_down)
                 {
                     PieceButton* btn = (PieceButton*)sq.data;
+
                     // grab piece from panel
                     if (!(held_piece.type == btn->piece.type && held_piece.white == btn->piece.white))
                     {
@@ -1147,20 +1155,20 @@ void game_update()
                         }
                     }
                     // pick up from square
-                    else if (held_piece.type == Piece_None && grid[grid_sq->col][grid_sq->row].piece.type != Piece_None)
+                    else if (turn_move && grid_sq->piece.white == player_white && held_piece.type == Piece_None && grid_sq->piece.type != Piece_None)
                     {
                         hovering = true;
                         if (g_mouse_down)
                         {
-                            held_piece = grid[grid_sq->col][grid_sq->row].piece;
-                            held_sprite = grid[grid_sq->col][grid_sq->row].piece_sprite;
+                            held_piece = grid_sq->piece;
+                            held_sprite = grid_sq->piece_sprite;
                             sprite_set_layer(held_sprite, 2);
 
                             held_last_col = grid_sq->col;
                             held_last_row = grid_sq->row;
 
-                            grid[grid_sq->col][grid_sq->row].piece.type = Piece_None;
-                            grid[grid_sq->col][grid_sq->row].piece_sprite = 0;
+                            grid_sq->piece.type = Piece_None;
+                            grid_sq->piece_sprite = 0;
                         }
                     }
                 }

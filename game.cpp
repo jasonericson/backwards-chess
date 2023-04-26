@@ -149,7 +149,7 @@ void game_init()
     held_sprite = 0;
 }
 
-bool check_for_check(bool white, GridSquare (&state)[8][8])
+bool is_king_in_danger(bool white, GridSquare (&state)[8][8])
 {
     short king_row = -1;
     short king_col = -1;
@@ -475,7 +475,7 @@ void test_move(uint16 src_col, uint16 src_row, uint16 dst_col, uint16 dst_row)
     test_state[src_col][src_row].piece.type = Piece_None;
 }
 
-bool check_for_safe_moves(bool white)
+bool any_safe_moves(bool white)
 {
     int piece_count = 0;
     for (uint16 col = 0; col < 8; ++col)
@@ -494,7 +494,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col < 8 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != white))
                     {
                         test_move(col, row, check_col, row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -503,7 +503,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col >= 0 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != white))
                     {
                         test_move(col, row, check_col, row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -512,7 +512,7 @@ bool check_for_safe_moves(bool white)
                     if (check_row < 8 && (grid[col][check_row].piece.type == Piece_None || grid[col][check_row].piece.white != white))
                     {
                         test_move(col, row, col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -521,7 +521,7 @@ bool check_for_safe_moves(bool white)
                     if (check_row >= 0 && (grid[col][check_row].piece.type == Piece_None || grid[col][check_row].piece.white != white))
                     {
                         test_move(col, row, col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -531,7 +531,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col < 8 && check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -541,7 +541,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col < 8 && check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -551,7 +551,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col >= 0 && check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -561,7 +561,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col >= 0 && check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
                 }
@@ -572,7 +572,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col < 8 && grid[check_col][row].piece.type == Piece_None)
                     {
                         test_move(col, row, check_col, row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -581,7 +581,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col >= 0 && grid[check_col][row].piece.type == Piece_None)
                     {
                         test_move(col, row, check_col, row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -590,7 +590,7 @@ bool check_for_safe_moves(bool white)
                     if (check_row < 8 && grid[col][check_row].piece.type == Piece_None)
                     {
                         test_move(col, row, col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -599,7 +599,7 @@ bool check_for_safe_moves(bool white)
                     if (check_row >= 0 && grid[col][check_row].piece.type == Piece_None)
                     {
                         test_move(col, row, col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -609,7 +609,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col < 8 && check_row < 8 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -619,7 +619,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col < 8 && check_row >= 0 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -629,7 +629,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col >= 0 && check_row >= 0 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
 
@@ -639,7 +639,7 @@ bool check_for_safe_moves(bool white)
                     if (check_col >= 0 && check_row < 8 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != white)
                     {
                         test_move(col, row, check_col, check_row);
-                        if (check_for_check(white, test_state) == false)
+                        if (is_king_in_danger(white, test_state) == false)
                             return true;
                     }
                 }
@@ -654,7 +654,7 @@ bool check_for_safe_moves(bool white)
                         if (check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
 
@@ -663,7 +663,7 @@ bool check_for_safe_moves(bool white)
                         if (check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
                     }
@@ -677,7 +677,7 @@ bool check_for_safe_moves(bool white)
                         if (check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
 
@@ -686,7 +686,7 @@ bool check_for_safe_moves(bool white)
                         if (check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
                     }
@@ -700,7 +700,7 @@ bool check_for_safe_moves(bool white)
                         if (check_col < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
 
@@ -709,7 +709,7 @@ bool check_for_safe_moves(bool white)
                         if (check_col >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
                     }
@@ -723,7 +723,7 @@ bool check_for_safe_moves(bool white)
                         if (check_col < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
 
@@ -732,7 +732,7 @@ bool check_for_safe_moves(bool white)
                         if (check_col >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != white))
                         {
                             test_move(col, row, check_col, check_row);
-                            if (check_for_check(white, test_state) == false)
+                            if (is_king_in_danger(white, test_state) == false)
                                 return true;
                         }
                     }
@@ -749,7 +749,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[check_col][row].piece.type == Piece_None)
                             {
                                 test_move(col, row, check_col, row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -757,7 +757,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[check_col][row].piece.white != white)
                                 {
                                     test_move(col, row, check_col, row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -774,7 +774,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[check_col][row].piece.type == Piece_None)
                             {
                                 test_move(col, row, check_col, row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -782,7 +782,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[check_col][row].piece.white != white)
                                 {
                                     test_move(col, row, check_col, row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -799,7 +799,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[col][check_row].piece.type == Piece_None)
                             {
                                 test_move(col, row, col, check_row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -807,7 +807,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[col][check_row].piece.white != white)
                                 {
                                     test_move(col, row, col, check_row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -824,7 +824,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[col][check_row].piece.type == Piece_None)
                             {
                                 test_move(col, row, col, check_row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -832,7 +832,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[col][check_row].piece.white != white)
                                 {
                                     test_move(col, row, col, check_row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -854,7 +854,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[check_col][check_row].piece.type == Piece_None)
                             {
                                 test_move(col, row, check_col, check_row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -862,7 +862,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[check_col][check_row].piece.white != white)
                                 {
                                     test_move(col, row, check_col, check_row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -881,7 +881,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[check_col][check_row].piece.type == Piece_None)
                             {
                                 test_move(col, row, check_col, check_row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -889,7 +889,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[check_col][check_row].piece.white != white)
                                 {
                                     test_move(col, row, check_col, check_row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -908,7 +908,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[check_col][check_row].piece.type == Piece_None)
                             {
                                 test_move(col, row, check_col, check_row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -916,7 +916,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[check_col][check_row].piece.white != white)
                                 {
                                     test_move(col, row, check_col, check_row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -935,7 +935,7 @@ bool check_for_safe_moves(bool white)
                             if (grid[check_col][check_row].piece.type == Piece_None)
                             {
                                 test_move(col, row, check_col, check_row);
-                                if (check_for_check(white, test_state) == false)
+                                if (is_king_in_danger(white, test_state) == false)
                                     return true;
                             }
                             else
@@ -943,7 +943,7 @@ bool check_for_safe_moves(bool white)
                                 if (grid[check_col][check_row].piece.white != white)
                                 {
                                     test_move(col, row, check_col, check_row);
-                                    if (check_for_check(white, test_state) == false)
+                                    if (is_king_in_danger(white, test_state) == false)
                                         return true;
                                 }
 
@@ -965,12 +965,72 @@ bool check_for_safe_moves(bool white)
         return true;
 }
 
+void check_for_check(bool white)
+{
+    CheckState* check_state = white ? &white_check_state : &black_check_state;
+    uint32* message_id = white ? &white_message_id : &black_message_id;
+    short message_x = white ? 40 : 120;
+    float r = white ? 1.0f : 0.0f;
+    float g = white ? 1.0f : 0.0f;
+    float b = white ? 1.0f : 0.0f;
+
+    bool now_in_check = is_king_in_danger(white, grid);
+    bool check_escapable = any_safe_moves(white);
+    if (now_in_check && !check_escapable)
+    {
+        if (*check_state != CS_CheckMate)
+        {
+            if (*message_id != 0)
+                text_delete(*message_id);
+            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, r, g, b);
+
+            *check_state = CS_CheckMate;
+        }
+    }
+    else if (now_in_check && check_escapable)
+    {
+        if (*check_state != CS_Check)
+        {
+            if (*message_id != 0)
+                text_delete(*message_id);
+            *message_id = text_create("Check", message_x, 20, Align_Center, r, g, b);
+
+            *check_state = CS_Check;
+        }
+    }
+    else if (!now_in_check && !check_escapable)
+    {
+        if (*check_state != CS_StaleMate)
+        {
+            if (*message_id != 0)
+                text_delete(*message_id);
+            *message_id = text_create("Stalemate", message_x, 20, Align_Center, r, g, b);
+
+            *check_state = CS_StaleMate;
+        }
+    }
+    else
+    {
+        if (*check_state != CS_None)
+        {
+            if (*message_id != 0)
+                text_delete(*message_id);
+            *message_id = 0;
+
+            *check_state = CS_None;
+        }
+    }
+}
+
 uint16 turn = 0;
 bool new_turn = true;
 
-void set_sprite_enabled(uint32 id, bool enabled)
+void set_panel_button_enabled(PieceType piece_type, bool enabled)
 {
-    Sprite* sprite = sprite_find(id);
+    ClickySquare* sq = &clicky_squares[piece_type - 1];
+    sq->enabled = enabled;
+    PieceButton* btn = (PieceButton*)sq->data;
+    Sprite* sprite = sprite_find(btn->piece_sprite);
     if (sprite != nullptr)
     {
         if (enabled)
@@ -981,36 +1041,56 @@ void set_sprite_enabled(uint32 id, bool enabled)
         }
         else
         {
-            sprite->r = 0.5f;
-            sprite->g = 0.5f;
-            sprite->b = 0.5f;
+            sprite->r = 0.4f;
+            sprite->g = 0.4f;
+            sprite->b = 0.4f;
         }
     }
 }
 
 void game_update()
 {
-    // if (new_turn)
-    // {
-    //     if (turn == 0)
-    //     {
-    //         set_sprite_enabled(queen_panel_sprite, false);
-    //         set_sprite_enabled(bishop_panel_sprite, false);
-    //         set_sprite_enabled(knight_panel_sprite, false);
-    //         set_sprite_enabled()
-    //     }
-    // }
-
-    if (g_space_down)
+    if (new_turn)
     {
-        switch_panel_color(!panel_white);
+        if (turn == 0)
+        {
+            for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
+            {
+                set_panel_button_enabled(p, false);
+            }
+        }
+        else if (turn == 1)
+        {
+            switch_panel_color(false);
+        }
+        else if (turn == 2)
+        {
+            switch_panel_color(true);
+
+            for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
+            {
+                set_panel_button_enabled(p, true);
+            }
+
+            set_panel_button_enabled(Piece_King, false);
+        }
+        else
+        {
+            if ((turn - 2) % 4 == 0)
+                switch_panel_color(true);
+            else if ((turn - 2) % 4 == 2)
+                switch_panel_color(false);
+        }
+
+        ++turn;
+        new_turn = false;
     }
 
     bool hovering = false;
     for (int i = 0; i < 70; ++i)
     {
         ClickySquare sq = clicky_squares[i];
-        if (g_mouse_x >= sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y >= sq.y && g_mouse_y < sq.y + sq.height)
+        if (g_mouse_x >= sq.x && g_mouse_x < sq.x + sq.width && g_mouse_y >= sq.y && g_mouse_y < sq.y + sq.height && sq.enabled)
         {
             switch (sq.action)
             {
@@ -1063,105 +1143,10 @@ void game_update()
                                 held_last_col = -1;
                                 held_last_row = -1;
 
-                                // white
-                                {
-                                    bool now_in_check = check_for_check(true, grid);
-                                    bool any_safe_moves = check_for_safe_moves(true);
-                                    if (now_in_check && !any_safe_moves)
-                                    {
-                                        if (white_check_state != CS_CheckMate)
-                                        {
-                                            if (white_message_id != 0)
-                                                text_delete(white_message_id);
-                                            white_message_id = text_create("Checkmate!", 40, 20, Align_Center);
+                                check_for_check(true);
+                                check_for_check(false);
 
-                                            white_check_state = CS_CheckMate;
-                                        }
-                                    }
-                                    else if (now_in_check && any_safe_moves)
-                                    {
-                                        if (white_check_state != CS_Check)
-                                        {
-                                            if (white_message_id != 0)
-                                                text_delete(white_message_id);
-                                            white_message_id = text_create("Check", 40, 20, Align_Center);
-
-                                            white_check_state = CS_Check;
-                                        }
-                                    }
-                                    else if (!now_in_check && !any_safe_moves)
-                                    {
-                                        if (white_check_state != CS_StaleMate)
-                                        {
-                                            if (white_message_id != 0)
-                                                text_delete(white_message_id);
-                                            white_message_id = text_create("Stalemate", 40, 20, Align_Center);
-
-                                            white_check_state = CS_StaleMate;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (white_check_state != CS_None)
-                                        {
-                                            if (white_message_id != 0)
-                                                text_delete(white_message_id);
-                                            white_message_id = 0;
-
-                                            white_check_state = CS_None;
-                                        }
-                                    }
-                                }
-
-                                // black
-                                {
-                                    bool now_in_check = check_for_check(false, grid);
-                                    bool any_safe_moves = check_for_safe_moves(false);
-                                    if (now_in_check && !any_safe_moves)
-                                    {
-                                        if (black_check_state != CS_CheckMate)
-                                        {
-                                            if (black_message_id != 0)
-                                                text_delete(black_message_id);
-                                            black_message_id = text_create("Checkmate!", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
-
-                                            black_check_state = CS_CheckMate;
-                                        }
-                                    }
-                                    else if (now_in_check && any_safe_moves)
-                                    {
-                                        if (black_check_state != CS_Check)
-                                        {
-                                            if (black_message_id != 0)
-                                                text_delete(black_message_id);
-                                            black_message_id = text_create("Check", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
-
-                                            black_check_state = CS_Check;
-                                        }
-                                    }
-                                    else if (!now_in_check && !any_safe_moves)
-                                    {
-                                        if (black_check_state != CS_StaleMate)
-                                        {
-                                            if (black_message_id != 0)
-                                                text_delete(black_message_id);
-                                            black_message_id = text_create("Stalemate", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
-
-                                            black_check_state = CS_StaleMate;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (black_check_state != CS_None)
-                                        {
-                                            if (black_message_id != 0)
-                                                text_delete(black_message_id);
-                                            black_message_id = 0;
-
-                                            black_check_state = CS_None;
-                                        }
-                                    }
-                                }
+                                new_turn = true;
                             }
                         }
                     }

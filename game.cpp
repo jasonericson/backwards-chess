@@ -1000,7 +1000,7 @@ void game_update()
                 if (held_piece.type != Piece_None)
                 {
                     hovering = true;
-                    if (g_mouse_up)
+                    if (g_mouse_down || g_mouse_long_up)
                     {
                         GridSquare* grid_sq = &grid[sq.grid_col][sq.grid_row];
 
@@ -1159,7 +1159,7 @@ void game_update()
     else
     {
         cursor_set(false);
-        if (g_mouse_up)
+        if (g_mouse_down || g_mouse_long_up)
         {
             held_piece.type = Piece_None;
             if (held_sprite != 0)

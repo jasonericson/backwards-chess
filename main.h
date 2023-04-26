@@ -7,6 +7,7 @@ typedef unsigned int    uint32;
 
 extern bool g_mouse_down;
 extern bool g_mouse_up;
+extern bool g_mouse_long_up;
 extern int g_mouse_x;
 extern int g_mouse_y;
 extern int g_mouse_raw_x;

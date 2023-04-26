@@ -34,9 +34,8 @@ struct Piece
     bool white;
 };
 
-Texture piece_textures[7][2] =
+Texture piece_textures[6][2] =
 {
-    {{}, {}},
     /* pawn */   { Texture{ 0, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
     /* rook */   { Texture{ 0, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
     /* knight */ { Texture{ 0, 14, 14, 33.0f / 64.0f, 47.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14, 33.0f / 64.0f, 47.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
@@ -49,6 +48,7 @@ struct GridSquare
 {
     Piece piece;
     uint32 piece_sprite;
+    short col, row;
 };
 
 GridSquare grid[8][8];
@@ -68,8 +68,6 @@ struct ClickySquare
     Action action;
     bool enabled;
     void* data;
-    Piece piece;
-    short grid_col, grid_row;
 };
 
 ClickySquare clicky_squares[70];
@@ -105,7 +103,7 @@ void setup_panel()
 
     for (PieceType p = Piece_King; p > Piece_None; p = (PieceType)(p - 1))
     {
-        piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p][true], piece_panel_x, next_panel_y, 1) };
+        piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p - 1][true], piece_panel_x, next_panel_y, 1) };
         clicky_squares[p - 1] = ClickySquare { piece_panel_x, next_panel_y, 14, 14, Action::Action_GrabPiece, true, &piece_buttons[p - 1] };
         next_panel_y = next_panel_y - 2 - 14;
     }
@@ -123,7 +121,7 @@ void switch_panel_color(bool white)
         Sprite* sprite = sprite_find(piece_buttons[p - 1].piece_sprite);
         if (sprite != nullptr)
         {
-            sprite->tex = &piece_textures[p][white];
+            sprite->tex = &piece_textures[p - 1][white];
         }
         piece_buttons[p - 1].piece.white = white;
     }
@@ -141,7 +139,9 @@ void game_init()
     {
         for (short row = 0; row < 8; ++row)
         {
-            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, true, nullptr, {} , col, row };
+            grid[col][row].col = col;
+            grid[col][row].row = row;
+            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, true, &grid[col][row] };
         }
     }
 
@@ -1022,7 +1022,7 @@ void game_update()
                     // grab piece from panel
                     if (!(held_piece.type == btn->piece.type && held_piece.white == btn->piece.white))
                     {
-                        Texture* piece_tex = &piece_textures[btn->piece.type][btn->piece.white];
+                        Texture* piece_tex = &piece_textures[btn->piece.type - 1][btn->piece.white];
 
                         if (held_sprite != 0)
                         {
@@ -1036,150 +1036,151 @@ void game_update()
                 }
                 break;
             case Action_GridSquare:
-                // place on square
-                if (held_piece.type != Piece_None)
                 {
-                    hovering = true;
-                    if (g_mouse_down || g_mouse_long_up)
+                    GridSquare* grid_sq = (GridSquare*)sq.data;
+                    // place on square
+                    if (held_piece.type != Piece_None)
                     {
-                        GridSquare* grid_sq = &grid[sq.grid_col][sq.grid_row];
-
-                        // if space is blank OR has opponent piece
-                        if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
+                        hovering = true;
+                        if (g_mouse_down || g_mouse_long_up)
                         {
-                            // get rid of opponent piece
-                            if (grid_sq->piece_sprite != 0)
+                            // if space is blank OR has opponent piece
+                            if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
                             {
-                                sprite_delete(grid_sq->piece_sprite);
-                            }
-
-                            grid_sq->piece = held_piece;
-                            grid_sq->piece_sprite = held_sprite;
-
-                            sprite_set_pos(held_sprite, grid_pos_x + sq.grid_col * 14, grid_pos_y + sq.grid_row * 14);
-                            held_piece.type = Piece_None;
-                            held_sprite = 0;
-
-                            held_last_col = -1;
-                            held_last_row = -1;
-
-                            // white
-                            {
-                                bool now_in_check = check_for_check(true, grid);
-                                bool any_safe_moves = check_for_safe_moves(true);
-                                if (now_in_check && !any_safe_moves)
+                                // get rid of opponent piece
+                                if (grid_sq->piece_sprite != 0)
                                 {
-                                    if (white_check_state != CS_CheckMate)
-                                    {
-                                        if (white_message_id != 0)
-                                            text_delete(white_message_id);
-                                        white_message_id = text_create("Checkmate!", 40, 20, Align_Center);
+                                    sprite_delete(grid_sq->piece_sprite);
+                                }
 
-                                        white_check_state = CS_CheckMate;
+                                grid_sq->piece = held_piece;
+                                grid_sq->piece_sprite = held_sprite;
+
+                                sprite_set_pos(held_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
+                                held_piece.type = Piece_None;
+                                held_sprite = 0;
+
+                                held_last_col = -1;
+                                held_last_row = -1;
+
+                                // white
+                                {
+                                    bool now_in_check = check_for_check(true, grid);
+                                    bool any_safe_moves = check_for_safe_moves(true);
+                                    if (now_in_check && !any_safe_moves)
+                                    {
+                                        if (white_check_state != CS_CheckMate)
+                                        {
+                                            if (white_message_id != 0)
+                                                text_delete(white_message_id);
+                                            white_message_id = text_create("Checkmate!", 40, 20, Align_Center);
+
+                                            white_check_state = CS_CheckMate;
+                                        }
+                                    }
+                                    else if (now_in_check && any_safe_moves)
+                                    {
+                                        if (white_check_state != CS_Check)
+                                        {
+                                            if (white_message_id != 0)
+                                                text_delete(white_message_id);
+                                            white_message_id = text_create("Check", 40, 20, Align_Center);
+
+                                            white_check_state = CS_Check;
+                                        }
+                                    }
+                                    else if (!now_in_check && !any_safe_moves)
+                                    {
+                                        if (white_check_state != CS_StaleMate)
+                                        {
+                                            if (white_message_id != 0)
+                                                text_delete(white_message_id);
+                                            white_message_id = text_create("Stalemate", 40, 20, Align_Center);
+
+                                            white_check_state = CS_StaleMate;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (white_check_state != CS_None)
+                                        {
+                                            if (white_message_id != 0)
+                                                text_delete(white_message_id);
+                                            white_message_id = 0;
+
+                                            white_check_state = CS_None;
+                                        }
                                     }
                                 }
-                                else if (now_in_check && any_safe_moves)
-                                {
-                                    if (white_check_state != CS_Check)
-                                    {
-                                        if (white_message_id != 0)
-                                            text_delete(white_message_id);
-                                        white_message_id = text_create("Check", 40, 20, Align_Center);
 
-                                        white_check_state = CS_Check;
+                                // black
+                                {
+                                    bool now_in_check = check_for_check(false, grid);
+                                    bool any_safe_moves = check_for_safe_moves(false);
+                                    if (now_in_check && !any_safe_moves)
+                                    {
+                                        if (black_check_state != CS_CheckMate)
+                                        {
+                                            if (black_message_id != 0)
+                                                text_delete(black_message_id);
+                                            black_message_id = text_create("Checkmate!", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
+
+                                            black_check_state = CS_CheckMate;
+                                        }
                                     }
-                                }
-                                else if (!now_in_check && !any_safe_moves)
-                                {
-                                    if (white_check_state != CS_StaleMate)
+                                    else if (now_in_check && any_safe_moves)
                                     {
-                                        if (white_message_id != 0)
-                                            text_delete(white_message_id);
-                                        white_message_id = text_create("Stalemate", 40, 20, Align_Center);
+                                        if (black_check_state != CS_Check)
+                                        {
+                                            if (black_message_id != 0)
+                                                text_delete(black_message_id);
+                                            black_message_id = text_create("Check", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
 
-                                        white_check_state = CS_StaleMate;
+                                            black_check_state = CS_Check;
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    if (white_check_state != CS_None)
+                                    else if (!now_in_check && !any_safe_moves)
                                     {
-                                        if (white_message_id != 0)
-                                            text_delete(white_message_id);
-                                        white_message_id = 0;
+                                        if (black_check_state != CS_StaleMate)
+                                        {
+                                            if (black_message_id != 0)
+                                                text_delete(black_message_id);
+                                            black_message_id = text_create("Stalemate", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
 
-                                        white_check_state = CS_None;
+                                            black_check_state = CS_StaleMate;
+                                        }
                                     }
-                                }
-                            }
-
-                            // black
-                            {
-                                bool now_in_check = check_for_check(false, grid);
-                                bool any_safe_moves = check_for_safe_moves(false);
-                                if (now_in_check && !any_safe_moves)
-                                {
-                                    if (black_check_state != CS_CheckMate)
+                                    else
                                     {
-                                        if (black_message_id != 0)
-                                            text_delete(black_message_id);
-                                        black_message_id = text_create("Checkmate!", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
+                                        if (black_check_state != CS_None)
+                                        {
+                                            if (black_message_id != 0)
+                                                text_delete(black_message_id);
+                                            black_message_id = 0;
 
-                                        black_check_state = CS_CheckMate;
-                                    }
-                                }
-                                else if (now_in_check && any_safe_moves)
-                                {
-                                    if (black_check_state != CS_Check)
-                                    {
-                                        if (black_message_id != 0)
-                                            text_delete(black_message_id);
-                                        black_message_id = text_create("Check", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
-
-                                        black_check_state = CS_Check;
-                                    }
-                                }
-                                else if (!now_in_check && !any_safe_moves)
-                                {
-                                    if (black_check_state != CS_StaleMate)
-                                    {
-                                        if (black_message_id != 0)
-                                            text_delete(black_message_id);
-                                        black_message_id = text_create("Stalemate", 120, 20, Align_Center, 0.0f, 0.0f, 0.0f);
-
-                                        black_check_state = CS_StaleMate;
-                                    }
-                                }
-                                else
-                                {
-                                    if (black_check_state != CS_None)
-                                    {
-                                        if (black_message_id != 0)
-                                            text_delete(black_message_id);
-                                        black_message_id = 0;
-
-                                        black_check_state = CS_None;
+                                            black_check_state = CS_None;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                // pick up from square
-                else if (held_piece.type == Piece_None && grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
-                {
-                    hovering = true;
-                    if (g_mouse_down)
+                    // pick up from square
+                    else if (held_piece.type == Piece_None && grid[grid_sq->col][grid_sq->row].piece.type != Piece_None)
                     {
-                        held_piece = grid[sq.grid_col][sq.grid_row].piece;
-                        held_sprite = grid[sq.grid_col][sq.grid_row].piece_sprite;
-                        sprite_set_layer(held_sprite, 2);
+                        hovering = true;
+                        if (g_mouse_down)
+                        {
+                            held_piece = grid[grid_sq->col][grid_sq->row].piece;
+                            held_sprite = grid[grid_sq->col][grid_sq->row].piece_sprite;
+                            sprite_set_layer(held_sprite, 2);
 
-                        held_last_col = sq.grid_col;
-                        held_last_row = sq.grid_row;
+                            held_last_col = grid_sq->col;
+                            held_last_row = grid_sq->row;
 
-                        grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
-                        grid[sq.grid_col][sq.grid_row].piece_sprite = 0;
+                            grid[grid_sq->col][grid_sq->row].piece.type = Piece_None;
+                            grid[grid_sq->col][grid_sq->row].piece_sprite = 0;
+                        }
                     }
                 }
                 break;

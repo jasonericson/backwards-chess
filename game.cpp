@@ -977,21 +977,8 @@ void game_update()
             {
             case Action_GrabPiece:
                 hovering = true;
-                break;
-            case Action_GridSquare:
-                if (held_piece.type != Piece_None || grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
-                    hovering = true;
-                break;
-            default:
-                hovering = true;
-                break;
-            }
-
-            if (g_mouse_down)
-            {
-                switch (sq.action)
+                if (g_mouse_down)
                 {
-                case Action_GrabPiece:
                     // grab piece from panel
                     if (!(held_piece.type == sq.piece.type && held_piece.white == sq.piece.white))
                     {
@@ -1006,10 +993,14 @@ void game_update()
                         held_last_col = -1;
                         held_last_row = -1;
                     }
-                    break;
-                case Action_GridSquare:
-                    // place on square
-                    if (held_piece.type != Piece_None)
+                }
+                break;
+            case Action_GridSquare:
+                // place on square
+                if (held_piece.type != Piece_None)
+                {
+                    hovering = true;
+                    if (g_mouse_up)
                     {
                         GridSquare* grid_sq = &grid[sq.grid_col][sq.grid_row];
 
@@ -1133,8 +1124,12 @@ void game_update()
                             }
                         }
                     }
-                    // pick up from square
-                    else if (held_piece.type == Piece_None && grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
+                }
+                // pick up from square
+                else if (held_piece.type == Piece_None && grid[sq.grid_col][sq.grid_row].piece.type != Piece_None)
+                {
+                    hovering = true;
+                    if (g_mouse_down)
                     {
                         held_piece = grid[sq.grid_col][sq.grid_row].piece;
                         held_sprite = grid[sq.grid_col][sq.grid_row].piece_sprite;
@@ -1146,10 +1141,11 @@ void game_update()
                         grid[sq.grid_col][sq.grid_row].piece.type = Piece_None;
                         grid[sq.grid_col][sq.grid_row].piece_sprite = 0;
                     }
-                    break;
-                default:
-                    break;
                 }
+                break;
+            default:
+                hovering = true;
+                break;
             }
 
             break;
@@ -1163,7 +1159,7 @@ void game_update()
     else
     {
         cursor_set(false);
-        if (g_mouse_down)
+        if (g_mouse_up)
         {
             held_piece.type = Piece_None;
             if (held_sprite != 0)

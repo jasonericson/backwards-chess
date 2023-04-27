@@ -53,6 +53,7 @@ struct GridSquare
 
 GridSquare grid[8][8];
 GridSquare test_state[8][8];
+Uint64 valid_spaces;
 
 struct PieceButton
 {
@@ -1022,6 +1023,577 @@ void check_for_check(bool white)
     }
 }
 
+void set_valid_space(short col, short row, bool valid)
+{
+    if (valid)
+        valid_spaces |= 1UL << (row * 8 + col);
+    else
+        valid_spaces &= ~(1UL << (row * 8 + col));
+}
+
+bool is_valid_space(short col, short row)
+{
+    return (valid_spaces >> (row * 8 + col)) & 1U;
+}
+
+void set_all_valid_moves(short col, short row)
+{
+    valid_spaces = 0;
+
+    // special case: original space always valid, just not treated as full move
+    set_valid_space(col, row, true);
+
+    short check_col, check_row;
+    if (grid[col][row].piece.type == Piece_Pawn)
+    {
+        // right
+        check_col = col + 1;
+        if (check_col < 8 && grid[check_col][row].piece.type == Piece_None)
+        {
+            test_move(col, row, check_col, row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, row, true);
+            }
+        }
+
+        // left
+        check_col = col - 1;
+        if (check_col >= 0 && grid[check_col][row].piece.type == Piece_None)
+        {
+            test_move(col, row, check_col, row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, row, true);
+            }
+        }
+
+        // up
+        check_row = row + 1;
+        if (check_row < 8 && grid[col][check_row].piece.type == Piece_None)
+        {
+            test_move(col, row, col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(col, check_row, true);
+            }
+        }
+
+        // down
+        check_row = row - 1;
+        if (check_row >= 0 && grid[col][check_row].piece.type == Piece_None)
+        {
+            test_move(col, row, col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(col, check_row, true);
+            }
+        }
+
+        // right-up
+        check_col = col + 1;
+        check_row = row + 1;
+        if (check_col < 8 && check_row < 8 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != player_white)
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+
+        // right-down
+        check_col = col + 1;
+        check_row = row - 1;
+        if (check_col < 8 && check_row >= 0 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != player_white)
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+
+        // left-down
+        check_col = col - 1;
+        check_row = row - 1;
+        if (check_col >= 0 && check_row >= 0 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != player_white)
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+
+        // left-up
+        check_col = col - 1;
+        check_row = row + 1;
+        if (check_col >= 0 && check_row < 8 && grid[check_col][check_row].piece.type != Piece_None && grid[check_col][check_row].piece.white != player_white)
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+    }
+    else if (grid[col][row].piece.type == Piece_King)
+    {
+        // right
+        check_col = col + 1;
+        if (check_col < 8 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != player_white))
+        {
+            test_move(col, row, check_col, row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, row, true);
+            }
+        }
+
+        // left
+        check_col = col - 1;
+        if (check_col >= 0 && (grid[check_col][row].piece.type == Piece_None || grid[check_col][row].piece.white != player_white))
+        {
+            test_move(col, row, check_col, row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, row, true);
+            }
+        }
+
+        // up
+        check_row = row + 1;
+        if (check_row < 8 && (grid[col][check_row].piece.type == Piece_None || grid[col][check_row].piece.white != player_white))
+        {
+            test_move(col, row, col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(col, check_row, true);
+            }
+        }
+
+        // down
+        check_row = row - 1;
+        if (check_row >= 0 && (grid[col][check_row].piece.type == Piece_None || grid[col][check_row].piece.white != player_white))
+        {
+            test_move(col, row, col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(col, check_row, true);
+            }
+        }
+
+        // right-up
+        check_col = col + 1;
+        check_row = row + 1;
+        if (check_col < 8 && check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+
+        // right-down
+        check_col = col + 1;
+        check_row = row - 1;
+        if (check_col < 8 && check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+
+        // left-down
+        check_col = col - 1;
+        check_row = row - 1;
+        if (check_col >= 0 && check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+
+        // left-up
+        check_col = col - 1;
+        check_row = row + 1;
+        if (check_col >= 0 && check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+        {
+            test_move(col, row, check_col, check_row);
+            if (!is_king_in_danger(player_white, test_state))
+            {
+                set_valid_space(check_col, check_row, true);
+            }
+        }
+    }
+    else if (grid[col][row].piece.type == Piece_Knight)
+    {
+        // right
+        check_col = col + 2;
+        if (check_col < 8)
+        {
+            // right-up
+            check_row = row + 1;
+            if (check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+
+            // right-down
+            check_row = row - 1;
+            if (check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+        }
+
+        // left
+        check_col = col - 2;
+        if (check_col >= 8)
+        {
+            // left-up
+            check_row = row + 1;
+            if (check_row < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+
+            // left-down
+            check_row = row - 1;
+            if (check_row >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+        }
+
+        // up
+        check_row = row + 2;
+        if (check_row < 8)
+        {
+            // up-right
+            check_col = col + 1;
+            if (check_col < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+
+            // up-left
+            check_col = col - 1;
+            if (check_col >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+        }
+
+        // down
+        check_row = row - 2;
+        if (check_row >= 0)
+        {
+            // down-right
+            check_col = col + 1;
+            if (check_col < 8 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+
+            // down-left
+            check_col = col - 1;
+            if (check_col >= 0 && (grid[check_col][check_row].piece.type == Piece_None || grid[check_col][check_row].piece.white != player_white))
+            {
+                test_move(col, row, check_col, check_row);
+                if (!is_king_in_danger(player_white, test_state))
+                {
+                    set_valid_space(check_col, check_row, true);
+                }
+            }
+        }
+    }
+    else
+    {
+        // diagonals
+        if (grid[col][row].piece.type == Piece_Queen || grid[col][row].piece.type == Piece_Bishop)
+        {
+            // right-up
+            check_col = col + 1;
+            check_row = row + 1;
+            while (check_col < 8 && check_row < 8)
+            {
+                if (grid[check_col][check_row].piece.type == Piece_None)
+                {
+                    test_move(col, row, check_col, check_row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(check_col, check_row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[check_col][check_row].piece.white != player_white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(check_col, check_row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                ++check_col;
+                ++check_row;
+            }
+
+            // right-down
+            check_col = col + 1;
+            check_row = row - 1;
+            while (check_col < 8 && check_row >= 0)
+            {
+                if (grid[check_col][check_row].piece.type == Piece_None)
+                {
+                    test_move(col, row, check_col, check_row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(check_col, check_row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[check_col][check_row].piece.white != player_white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(check_col, check_row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                ++check_col;
+                --check_row;
+            }
+
+            // left-down
+            check_col = col - 1;
+            check_row = row - 1;
+            while (check_col >= 0 && check_row >= 0)
+            {
+                if (grid[check_col][check_row].piece.type == Piece_None)
+                {
+                    test_move(col, row, check_col, check_row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(check_col, check_row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[check_col][check_row].piece.white != player_white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(check_col, check_row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                --check_col;
+                --check_row;
+            }
+
+            // left-up
+            check_col = col - 1;
+            check_row = row + 1;
+            while (check_col >= 0 && check_row < 8)
+            {
+                if (grid[check_col][check_row].piece.type == Piece_None)
+                {
+                    test_move(col, row, check_col, check_row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(check_col, check_row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[check_col][check_row].piece.white != player_white)
+                    {
+                        test_move(col, row, check_col, check_row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(check_col, check_row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                --check_col;
+                ++check_row;
+            }
+        }
+
+        // orthogonals
+        if (grid[col][row].piece.type == Piece_Queen || grid[col][row].piece.type == Piece_Rook)
+        {
+            // right
+            check_col = col + 1;
+            while (check_col < 8)
+            {
+                if (grid[check_col][row].piece.type == Piece_None)
+                {
+                    test_move(col, row, check_col, row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(check_col, row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[check_col][row].piece.white != player_white)
+                    {
+                        test_move(col, row, check_col, row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(check_col, row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                ++check_col;
+            }
+
+            // left
+            check_col = col - 1;
+            while (check_col >= 0)
+            {
+                if (grid[check_col][row].piece.type == Piece_None)
+                {
+                    test_move(col, row, check_col, row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(check_col, row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[check_col][row].piece.white != player_white)
+                    {
+                        test_move(col, row, check_col, row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(check_col, row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                --check_col;
+            }
+
+            // up
+            check_row = row + 1;
+            while (check_row < 8)
+            {
+                if (grid[col][check_row].piece.type == Piece_None)
+                {
+                    test_move(col, row, col, check_row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(col, check_row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[col][check_row].piece.white != player_white)
+                    {
+                        test_move(col, row, col, check_row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(col, check_row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                ++check_row;
+            }
+
+            // down
+            check_row = row - 1;
+            while (check_row >= 0)
+            {
+                if (grid[col][check_row].piece.type == Piece_None)
+                {
+                    test_move(col, row, col, check_row);
+                    if (!is_king_in_danger(player_white, test_state))
+                    {
+                        set_valid_space(col, check_row, true);
+                    }
+                }
+                else
+                {
+                    if (grid[col][check_row].piece.white != player_white)
+                    {
+                        test_move(col, row, col, check_row);
+                        if (!is_king_in_danger(player_white, test_state))
+                        {
+                            set_valid_space(col, check_row, true);
+                        }
+                    }
+
+                    break;
+                }
+
+                --check_row;
+            }
+        }
+    }
+}
+
 uint16 turn = 0;
 bool new_turn = true;
 bool turn_move = false;
@@ -1116,14 +1688,24 @@ void game_update()
                         held_piece = btn->piece;
                         held_last_col = -1;
                         held_last_row = -1;
+
+                        // set valid spaces (in this case, any empty)
+                        for (uint16 row = 0; row < 8; ++row)
+                        {
+                            for (uint16 col = 0; col < 8; ++col)
+                            {
+                                set_valid_space(col, row, grid[col][row].piece.type == Piece_None);
+                            }
+                        }
                     }
                 }
                 break;
             case Action_GridSquare:
                 {
                     GridSquare* grid_sq = (GridSquare*)sq.data;
+
                     // place on square
-                    if (held_piece.type != Piece_None)
+                    if (held_piece.type != Piece_None && is_valid_space(grid_sq->col, grid_sq->row))
                     {
                         hovering = true;
                         if (g_mouse_down || g_mouse_long_up)
@@ -1144,13 +1726,14 @@ void game_update()
                                 held_piece.type = Piece_None;
                                 held_sprite = 0;
 
-                                held_last_col = -1;
-                                held_last_row = -1;
-
                                 check_for_check(true);
                                 check_for_check(false);
 
-                                new_turn = true;
+                                if (held_last_col != grid_sq->col || held_last_row != grid_sq->row)
+                                    new_turn = true;
+
+                                held_last_col = -1;
+                                held_last_row = -1;
                             }
                         }
                     }
@@ -1160,6 +1743,8 @@ void game_update()
                         hovering = true;
                         if (g_mouse_down)
                         {
+                            set_all_valid_moves(grid_sq->col, grid_sq->row);
+
                             held_piece = grid_sq->piece;
                             held_sprite = grid_sq->piece_sprite;
                             sprite_set_layer(held_sprite, 2);
@@ -1189,11 +1774,21 @@ void game_update()
     else
     {
         cursor_set(false);
-        if (g_mouse_down || g_mouse_long_up)
+        if (held_piece.type != Piece_None && (g_mouse_down || g_mouse_long_up))
         {
+            if (held_last_col >= 0 && held_last_row >= 0)
+            {
+                grid[held_last_col][held_last_row].piece = held_piece;
+                grid[held_last_col][held_last_row].piece_sprite = held_sprite;
+
+                sprite_set_pos(held_sprite, grid_pos_x + held_last_col * 14, grid_pos_y + held_last_row * 14);
+            }
+            else
+            {
+                if (held_sprite != 0)
+                    sprite_delete(held_sprite);
+            }
             held_piece.type = Piece_None;
-            if (held_sprite != 0)
-                sprite_delete(held_sprite);
             held_sprite = 0;
         }
     }

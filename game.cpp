@@ -1026,9 +1026,9 @@ void check_for_check(bool white)
 void set_valid_space(short col, short row, bool valid)
 {
     if (valid)
-        valid_spaces |= 1UL << (row * 8 + col);
+        valid_spaces |= 1ULL << (row * 8 + col);
     else
-        valid_spaces &= ~(1UL << (row * 8 + col));
+        valid_spaces &= ~(1ULL << (row * 8 + col));
 }
 
 bool is_valid_space(short col, short row)
@@ -1689,6 +1689,7 @@ void game_update()
                         held_last_col = -1;
                         held_last_row = -1;
 
+                        valid_spaces = 0;
                         // set valid spaces (in this case, any empty)
                         for (uint16 row = 0; row < 8; ++row)
                         {

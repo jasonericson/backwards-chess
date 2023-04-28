@@ -204,7 +204,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
                         array->data[src_index] = array->data[i - 1];
                         array->data[i - 1] = swap;
 
-                        if (array->data[i].depth_layer == depth_layer)
+                        if (array->data[i].depth_layer >= depth_layer)
                         {
                             src_index = -1;
                             break;
@@ -224,7 +224,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
             }
             else if (depth_layer < src_layer)
             {
-                uint16 i;
+                int32 i;
                 for (i = src_index - 1; i >= 0; --i)
                 {
                     if (array->data[i].depth_layer < src_layer)
@@ -233,7 +233,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
                         array->data[src_index] = array->data[i + 1];
                         array->data[i + 1] = swap;
 
-                        if (array->data[i].depth_layer == depth_layer)
+                        if (array->data[i].depth_layer <= depth_layer)
                         {
                             src_index = -1;
                             break;

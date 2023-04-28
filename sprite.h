@@ -30,8 +30,10 @@ struct SpriteArray
 };
 
 const uint16 SPRITE_LAYERS = 3;
+const uint16 NUM_MAPS = 2;
 
-extern SpriteArray sprites[2][SPRITE_LAYERS];
+extern SpriteArray sprites[NUM_MAPS][SPRITE_LAYERS];
+extern const char* spritemap_filenames[NUM_MAPS];
 
 void sprite_init();
 uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);

@@ -20,8 +20,7 @@ struct SpriteMap
     float tints[4 * SPRITE_MAX * SPRITE_LAYERS];
 };
 
-SpriteMap maps[2];
-const char* spritemap_filenames[2] = {"pieces.png", "font.png"};
+SpriteMap maps[NUM_MAPS];
 
 SDL_Window* window;
 
@@ -150,7 +149,7 @@ void render_init()
     uvLoc = glGetAttribLocation(shaderProgramId, "_uv");
     tintLoc = glGetAttribLocation(shaderProgramId, "_tint");
 
-    for (int i = 0; i < 2; ++i)
+    for (int i = 0; i < NUM_MAPS; ++i)
     {
         SpriteMap* map = maps + i;
 
@@ -202,7 +201,7 @@ void render_update()
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int map_id = 0; map_id < 2; ++map_id)
+    for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
         SpriteMap* map = maps + map_id;
         uint32 sprite_count = 0;
@@ -315,7 +314,7 @@ void render_update()
 
 void render_cleanup()
 {
-    for (int i = 0; i < 2; ++i)
+    for (int i = 0; i < NUM_MAPS; ++i)
     {
         glDeleteVertexArrays(1, &maps[i].vao);
         glDeleteBuffers(1, &maps[i].vbo);

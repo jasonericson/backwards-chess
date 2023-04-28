@@ -1,6 +1,7 @@
 #include "sprite.h"
 
-SpriteArray sprites[2][SPRITE_LAYERS];
+SpriteArray sprites[NUM_MAPS][SPRITE_LAYERS];
+const char* spritemap_filenames[NUM_MAPS] = { "pieces.png", "font.png" };
 uint32 next_id;
 
 void sprite_init()
@@ -46,7 +47,7 @@ void sprite_delete(uint32 id)
     if (id == 0)
         return;
 
-    for (int map_id = 0; map_id < 2; ++map_id)
+    for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
         bool found = false;
         for (int layer = 0; layer < SPRITE_LAYERS; ++layer)
@@ -75,7 +76,7 @@ void sprite_delete(uint32 id)
 
 Sprite* sprite_find(uint32 id)
 {
-    for (int map_id = 0; map_id < 2; ++map_id)
+    for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
         for (int layer = 0; layer < SPRITE_LAYERS; ++layer)
         {
@@ -112,7 +113,7 @@ void sprite_set_layer(uint32 id, uint16 depth_layer)
     if (id == 0)
         return;
 
-    for (int map_id = 0; map_id < 2; ++map_id)
+    for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
         bool found = false;
         for (int layer = 0; layer < SPRITE_LAYERS; ++layer)

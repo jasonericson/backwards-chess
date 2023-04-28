@@ -10,6 +10,14 @@ Texture square_tex = Texture{ 0, 14, 14,  0.75f, 0.765625, 0.484375, 0.5f };
 
 uint32 grid_sprites[8][8] = { 0 };
 
+enum SpriteLayer
+{
+    Layer_Board = 0,
+    Layer_SquareHighlight = 1,
+    Layer_PlacedPiece = 2,
+    Layer_HeldPiece = 3,
+};
+
 enum Action
 {
     Action_None,
@@ -106,7 +114,7 @@ void setup_panel()
 
     for (PieceType p = Piece_King; p > Piece_None; p = (PieceType)(p - 1))
     {
-        piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p - 1][true], piece_panel_x, next_panel_y, 1) };
+        piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p - 1][true], piece_panel_x, next_panel_y, Layer_PlacedPiece) };
         clicky_squares[p - 1] = ClickySquare { piece_panel_x, next_panel_y, 14, 14, Action::Action_GrabPiece, true, &piece_buttons[p - 1] };
         next_panel_y = next_panel_y - 2 - 14;
     }
@@ -134,7 +142,7 @@ void game_init()
 {
     grid_pos_x = 160 - 112 - 8;
     grid_pos_y = 160 - 112 - 8;
-    sprite_create(&board_tex, grid_pos_x, grid_pos_y, 0);
+    sprite_create(&board_tex, grid_pos_x, grid_pos_y, Layer_Board);
 
     setup_panel();
 
@@ -1035,7 +1043,7 @@ void set_valid_space(short col, short row, bool valid)
         valid_spaces |= 1ULL << (row * 8 + col);
         if (sq->overlay_sprite != 0)
             sprite_delete(sq->overlay_sprite);
-        sq->overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, 2, 0.5f, 1.0f, 0.5f, 0.5f);
+        sq->overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, Layer_SquareHighlight, 0.5f, 1.0f, 0.5f, 0.5f);
     }
     else
     {
@@ -1712,7 +1720,7 @@ void game_update()
                         {
                             sprite_delete(held_sprite);
                         }
-                        held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, 3);
+                        held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, Layer_HeldPiece);
                         held_piece = btn->piece;
                         held_last_col = -1;
                         held_last_row = -1;
@@ -1754,7 +1762,7 @@ void game_update()
                                 grid_sq->piece_sprite = held_sprite;
 
                                 sprite_set_pos(held_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
-                                sprite_set_layer(held_sprite, 1);
+                                sprite_set_layer(held_sprite, Layer_PlacedPiece);
                                 held_piece.type = Piece_None;
                                 held_sprite = 0;
 
@@ -1779,7 +1787,7 @@ void game_update()
 
                             held_piece = grid_sq->piece;
                             held_sprite = grid_sq->piece_sprite;
-                            sprite_set_layer(held_sprite, 3);
+                            sprite_set_layer(held_sprite, Layer_HeldPiece);
 
                             held_last_col = grid_sq->col;
                             held_last_row = grid_sq->row;

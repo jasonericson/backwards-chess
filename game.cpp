@@ -165,6 +165,11 @@ void switch_panel_color(bool white)
 
         SDL_snprintf(btn->count_text, 3, "x%d", btn->count[white]);
         text_change(btn->count_text_id, btn->count_text);
+
+        if (white)
+            text_set_color(btn->count_text_id, 1.0f, 1.0f, 1.0f);
+        else
+            text_set_color(btn->count_text_id, 0.0f, 0.0f, 0.0f);
     }
 }
 
@@ -1681,6 +1686,11 @@ void set_panel_button_enabled(PieceType piece_type, bool enabled)
             sprite->a = 0.4f;
         }
     }
+
+    if (enabled)
+        text_set_alpha(btn->count_text_id, 1.0f);
+    else
+        text_set_alpha(btn->count_text_id, 0.4f);
 }
 
 void game_update()

@@ -75,7 +75,9 @@ uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float r,
     ++array->count;
     ++next_id;
 
+#if _DEBUG
     debug_check_sprites();
+#endif
 
     return this_id;
 }
@@ -128,7 +130,9 @@ void sprite_delete(uint32 id)
         }
     }
 
+#ifdef _DEBUG
     debug_check_sprites();
+#endif
 }
 
 Sprite* sprite_find(uint32 id)
@@ -253,7 +257,9 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
             break;
     }
 
+#if _DEBUG
     debug_check_sprites();
+#endif
 }
 
 void sprite_set_color(uint32 id, float r, float g, float b, float a)

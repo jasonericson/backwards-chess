@@ -14,6 +14,34 @@ void sprite_init()
     next_id = 1;
 }
 
+void debug_check_sprites()
+{
+    // debug check that everything's cool here
+    for (uint16 map_id = 0; map_id < NUM_MAPS; ++map_id)
+    {
+        SpriteArray* array = &sprites[map_id];
+        int16 last_layer = INT16_MIN;
+        for (uint16 i = 0; i < array->count; ++i)
+        {
+            // check that layers are in order
+            SDL_assert(array->data[i].depth_layer >= last_layer);
+            last_layer = array->data[i].depth_layer;
+
+            // check for duplicate IDs
+            for (uint16 map_id_2 = 0; map_id_2 < NUM_MAPS; ++map_id_2)
+            {
+                for (uint16 j = 0; j < sprites[map_id_2].count; ++j)
+                {
+                    if (map_id == map_id_2 && i == j)
+                        continue;
+                    
+                    SDL_assert(array->data[i].id != sprites[map_id_2].data[j].id);
+                }
+            }
+        }
+    }
+}
+
 uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float r, float g, float b, float a)
 {
     uint32 this_id = next_id;
@@ -46,6 +74,8 @@ uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float r,
 
     ++array->count;
     ++next_id;
+
+    debug_check_sprites();
 
     return this_id;
 }
@@ -86,16 +116,19 @@ void sprite_delete(uint32 id)
             }
         }
 
-        if (replace_index > 0)
+        if (replace_index >= 0)
         {
             if (replace_index != i - 1)
             {
                 array->data[replace_index] = array->data[i - 1];
-                --array->count;
             }
+            
+            --array->count;
             break;
         }
     }
+
+    debug_check_sprites();
 }
 
 Sprite* sprite_find(uint32 id)
@@ -173,7 +206,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
                             break;
                         }
 
-                        src_index = i;
+                        src_index = i - 1;
                         src_layer = array->data[i].depth_layer;
                     }
                 }
@@ -202,7 +235,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
                             break;
                         }
 
-                        src_index = i;
+                        src_index = i + 1;
                         src_layer = array->data[i].depth_layer;
                     }
                 }
@@ -219,6 +252,8 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
         if (found)
             break;
     }
+
+    debug_check_sprites();
 }
 
 void sprite_set_color(uint32 id, float r, float g, float b, float a)

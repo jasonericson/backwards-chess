@@ -6,6 +6,7 @@
 #include <SDL.h>
 
 Texture board_tex = Texture{ 0, 112, 112, 0.5f, 0.625, 0.375f, 0.5f };
+Texture square_tex = Texture{ 0, 14, 14,  0.75f, 0.765625, 0.484375, 0.5f };
 
 uint32 grid_sprites[8][8] = { 0 };
 
@@ -48,6 +49,7 @@ struct GridSquare
 {
     Piece piece;
     uint32 piece_sprite;
+    uint32 overlay_sprite;
     short col, row;
 };
 
@@ -140,6 +142,8 @@ void game_init()
     {
         for (short row = 0; row < 8; ++row)
         {
+            grid[col][row].piece_sprite = 0;
+            grid[col][row].overlay_sprite = 0;
             grid[col][row].col = col;
             grid[col][row].row = row;
             clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, true, &grid[col][row] };
@@ -1025,10 +1029,34 @@ void check_for_check(bool white)
 
 void set_valid_space(short col, short row, bool valid)
 {
+    GridSquare* sq = &grid[col][row];
     if (valid)
+    {
         valid_spaces |= 1ULL << (row * 8 + col);
+        if (sq->overlay_sprite != 0)
+            sprite_delete(sq->overlay_sprite);
+        sq->overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, 2, 0.5f, 1.0f, 0.5f, 0.5f);
+    }
     else
+    {
         valid_spaces &= ~(1ULL << (row * 8 + col));
+        if (sq->overlay_sprite != 0)
+            sprite_delete(sq->overlay_sprite);
+        sq->overlay_sprite = 0;
+    }
+}
+
+void clear_overlays()
+{
+    for (int16 row = 0; row < 8; ++row)
+    {
+        for (int16 col = 0; col < 8; ++col)
+        {
+            if (grid[col][row].overlay_sprite != 0)
+                sprite_delete(grid[col][row].overlay_sprite);
+            grid[col][row].overlay_sprite = 0;
+        }
+    }
 }
 
 bool is_valid_space(short col, short row)
@@ -1684,7 +1712,7 @@ void game_update()
                         {
                             sprite_delete(held_sprite);
                         }
-                        held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, 2);
+                        held_sprite = sprite_create(piece_tex, g_mouse_x, g_mouse_y, 3);
                         held_piece = btn->piece;
                         held_last_col = -1;
                         held_last_row = -1;
@@ -1720,6 +1748,8 @@ void game_update()
                                     sprite_delete(grid_sq->piece_sprite);
                                 }
 
+                                clear_overlays();
+
                                 grid_sq->piece = held_piece;
                                 grid_sq->piece_sprite = held_sprite;
 
@@ -1748,7 +1778,7 @@ void game_update()
 
                             held_piece = grid_sq->piece;
                             held_sprite = grid_sq->piece_sprite;
-                            sprite_set_layer(held_sprite, 2);
+                            sprite_set_layer(held_sprite, 3);
 
                             held_last_col = grid_sq->col;
                             held_last_row = grid_sq->row;

@@ -29,7 +29,7 @@ struct SpriteArray
     int count;
 };
 
-const uint16 SPRITE_LAYERS = 3;
+const uint16 SPRITE_LAYERS = 4;
 const uint16 NUM_MAPS = 2;
 
 extern SpriteArray sprites[NUM_MAPS][SPRITE_LAYERS];

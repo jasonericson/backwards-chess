@@ -69,6 +69,9 @@ struct PieceButton
 {
     Piece piece;
     uint32 piece_sprite;
+    uint16 count[2];
+    uint32 count_text_id;
+    char count_text[3];
 };
 
 PieceButton piece_buttons[7];
@@ -118,6 +121,28 @@ void setup_panel()
         clicky_squares[p - 1] = ClickySquare { piece_panel_x, next_panel_y, 14, 14, Action::Action_GrabPiece, true, &piece_buttons[p - 1] };
         next_panel_y = next_panel_y - 2 - 14;
     }
+
+    piece_buttons[Piece_Pawn - 1].count[0] = 8;
+    piece_buttons[Piece_Pawn - 1].count[1] = 8;
+    piece_buttons[Piece_Rook - 1].count[0] = 2;
+    piece_buttons[Piece_Rook - 1].count[1] = 2;
+    piece_buttons[Piece_Knight - 1].count[0] = 2;
+    piece_buttons[Piece_Knight - 1].count[1] = 2;
+    piece_buttons[Piece_Bishop - 1].count[0] = 2;
+    piece_buttons[Piece_Bishop - 1].count[1] = 2;
+    piece_buttons[Piece_Queen - 1].count[0] = 1;
+    piece_buttons[Piece_Queen - 1].count[1] = 1;
+    piece_buttons[Piece_King - 1].count[0] = 1;
+    piece_buttons[Piece_King - 1].count[1] = 1;
+
+    const short text_x = piece_panel_x + 14 - 1;
+
+    for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
+    {
+        SDL_snprintf(piece_buttons[p - 1].count_text, 3, "x%d", piece_buttons[p - 1].count[player_white]);
+        short y = clicky_squares[p - 1].y;
+        piece_buttons[p - 1].count_text_id = text_create(piece_buttons[p - 1].count_text, text_x, y);
+    }
 }
 
 void switch_panel_color(bool white)
@@ -129,12 +154,17 @@ void switch_panel_color(bool white)
 
     for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
     {
-        Sprite* sprite = sprite_find(piece_buttons[p - 1].piece_sprite);
+        PieceButton* btn = &piece_buttons[p - 1];
+        Sprite* sprite = sprite_find(btn->piece_sprite);
         if (sprite != nullptr)
         {
             sprite->tex = &piece_textures[p - 1][white];
         }
-        piece_buttons[p - 1].piece.white = white;
+
+        btn->piece.white = white;
+
+        SDL_snprintf(btn->count_text, 3, "x%d", btn->count[white]);
+        text_change(btn->count_text_id, btn->count_text);
     }
 }
 
@@ -1686,7 +1716,8 @@ void game_update()
                 turn_move = false;
                 for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
                 {
-                    set_panel_button_enabled(p, true);
+                    if (piece_buttons[p - 1].count[player_white] > 0)
+                        set_panel_button_enabled(p, true);
                 }
 
                 set_panel_button_enabled(Piece_King, false);
@@ -1755,6 +1786,20 @@ void game_update()
                                 {
                                     sprite_delete(grid_sq->piece_sprite);
                                 }
+                                
+                                if (held_last_col != grid_sq->col || held_last_row != grid_sq->row)
+                                {
+                                    new_turn = true;
+                                    
+                                    if (held_last_col < 0 || held_last_row < 0)
+                                    {
+                                        // this came from panel, update count
+                                        PieceButton* btn = &piece_buttons[held_piece.type - 1];
+                                        --btn->count[player_white];
+
+                                        // skip updating text cause we're about to switch to next player's turn anyway
+                                    }
+                                }
 
                                 clear_overlays();
 
@@ -1768,9 +1813,6 @@ void game_update()
 
                                 check_for_check(true);
                                 check_for_check(false);
-
-                                if (held_last_col != grid_sq->col || held_last_row != grid_sq->row)
-                                    new_turn = true;
 
                                 held_last_col = -1;
                                 held_last_row = -1;

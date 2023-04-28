@@ -22,7 +22,7 @@ struct Sprite
     float r, g, b, a;
 };
 
-const int SPRITE_MAX = 128;
+const int SPRITE_MAX = 512;
 
 struct SpriteArray
 {

@@ -8,6 +8,9 @@ const uint16 TEXT_MAX = 128;
 struct TextInstance
 {
     uint32 id, sprite_id_start, sprite_id_end;
+    int16 x, y;
+    TextAlign align;
+    float r, g, b;
 };
 uint32 text_next_id;
 
@@ -37,9 +40,9 @@ void text_init()
     texts.count = 0;
 }
 
-uint32 text_create(const char* text, short x, short y, TextAlign align /* = Align_Left */, float r, float g, float b)
+uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left */, float r, float g, float b)
 {
-    char* next_char = (char*)text;
+    char* next_char = text;
     short next_x = x;
 
     if (align == Align_Center)
@@ -52,7 +55,7 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
         }
 
         next_x = x - ((7 * num_chars) / 2);
-        next_char = (char*)text;
+        next_char = text;
     }
     else if (align == Align_Right)
     {
@@ -64,7 +67,7 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
         }
 
         next_x = x - (7 * num_chars);
-        next_char = (char*)text;
+        next_char = text;
     }
 
     uint32 start_id = 0;
@@ -84,7 +87,7 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
     {
         end_id = curr_id;
         uint32 this_id = text_next_id;
-        texts.data[texts.count] = { this_id, start_id, end_id };
+        texts.data[texts.count] = { this_id, start_id, end_id, x, y, align, r, g, b };
         ++texts.count;
         ++text_next_id;
 
@@ -94,6 +97,11 @@ uint32 text_create(const char* text, short x, short y, TextAlign align /* = Alig
     {
         return 0;
     }
+}
+
+uint32 text_create(const char* text, short x, short y, TextAlign align, float r, float g, float b)
+{
+    return text_create((char*)text, x, y, align, r, g, b);
 }
 
 void text_delete(uint32 id)
@@ -111,6 +119,73 @@ void text_delete(uint32 id)
 
             --texts.count;
             texts.data[i] = texts.data[texts.count];
+
+            break;
+        }
+    }
+}
+
+void text_change(uint32 id, char* text)
+{
+    for (uint16 i = 0; i < texts.count; ++i)
+    {
+        if (texts.data[i].id == id)
+        {
+            TextInstance* t = &texts.data[i];
+
+            // delete sprites
+            uint32 curr_id = t->sprite_id_start;
+            while (curr_id <= t->sprite_id_end)
+            {
+                sprite_delete(curr_id);
+                ++curr_id;
+            }
+
+            char* next_char = text;
+            short next_x = t->x;
+
+            if (t->align == Align_Center)
+            {
+                int num_chars = 0;
+                while (*next_char != 0)
+                {
+                    ++num_chars;
+                    ++next_char;
+                }
+
+                next_x = t->x - ((7 * num_chars) / 2);
+                next_char = text;
+            }
+            else if (t->align == Align_Right)
+            {
+                int num_chars = 0;
+                while (*next_char != 0)
+                {
+                    ++num_chars;
+                    ++next_char;
+                }
+
+                next_x = t->x - (7 * num_chars);
+                next_char = text;
+            }
+
+            t->sprite_id_start = 0;
+            t->sprite_id_end = 0;
+            curr_id = 0;
+            while (*next_char != 0)
+            {
+                curr_id = sprite_create(&characters[*next_char], next_x, t->y, 1, t->r, t->g, t->b);
+                if (t->sprite_id_start == 0)
+                    t->sprite_id_start = curr_id;
+
+                next_x += 7;
+                ++next_char;
+            }
+
+            if (curr_id != 0)
+            {
+                t->sprite_id_end = curr_id;
+            }
 
             break;
         }

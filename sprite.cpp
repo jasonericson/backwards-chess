@@ -58,6 +58,8 @@ uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float r,
     insert_sprite.a = a;
 
     SpriteArray* array = &sprites[tex->map_id];
+    
+    SDL_assert(array->count < SPRITE_MAX);
 
     uint16 i;
     for (i = 0; i < array->count; ++i)

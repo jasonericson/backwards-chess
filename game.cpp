@@ -1710,7 +1710,7 @@ void game_update()
         }
         else
         {
-            uint16 step = (turn - 2) % 4;
+            uint16 step = (turn - 1) % 4;
             if (step == 0 || step == 2)
             {
                 turn_move = true;
@@ -1723,14 +1723,13 @@ void game_update()
             }
             else
             {
-                turn_move = false;
-                for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
-                {
-                    if (piece_buttons[p - 1].count[player_white] > 0)
-                        set_panel_button_enabled(p, true);
-                }
+                switch_panel_color(step == 1);
 
-                set_panel_button_enabled(Piece_King, false);
+                turn_move = false;
+                for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
+                {
+                    set_panel_button_enabled(p, piece_buttons[p - 1].count[player_white] > 0);
+                }
             }
         }
 

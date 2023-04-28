@@ -1,6 +1,6 @@
 #include "sprite.h"
 
-SpriteArray sprites[NUM_MAPS][SPRITE_LAYERS];
+SpriteArray sprites[NUM_MAPS];
 const char* spritemap_filenames[NUM_MAPS] = { "pieces.png", "font.png" };
 uint32 next_id;
 
@@ -8,33 +8,41 @@ void sprite_init()
 {
     for (int i = 0; i < 2; ++i)
     {
-        for (int j = 0; j < SPRITE_LAYERS; ++j)
-        {
-            sprites[i][j].count = 0;
-        }
+        sprites[i].count = 0;
     }
 
     next_id = 1;
 }
 
-uint32 sprite_create(Texture* tex, short x, short y, uint16 depth_layer, float r, float g, float b, float a)
+uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float r, float g, float b, float a)
 {
-    if (depth_layer >= SPRITE_LAYERS)
-        return 0;
-
     uint32 this_id = next_id;
+    Sprite insert_sprite;
+    insert_sprite.id = this_id;
+    insert_sprite.x = x;
+    insert_sprite.y = y;
+    insert_sprite.depth_layer = depth_layer;
+    insert_sprite.tex = tex;
+    insert_sprite.smooth_pos = false;
+    insert_sprite.r = r;
+    insert_sprite.g = g;
+    insert_sprite.b = b;
+    insert_sprite.a = a;
 
-    SpriteArray* array = &sprites[tex->map_id][depth_layer];
+    SpriteArray* array = &sprites[tex->map_id];
 
-    array->data[array->count].id = this_id;
-    array->data[array->count].x = x;
-    array->data[array->count].y = y;
-    array->data[array->count].tex = tex;
-    array->data[array->count].smooth_pos = false;
-    array->data[array->count].r = r;
-    array->data[array->count].g = g;
-    array->data[array->count].b = b;
-    array->data[array->count].a = a;
+    uint16 i;
+    for (i = 0; i < array->count; ++i)
+    {
+        if (array->data[i].depth_layer > insert_sprite.depth_layer)
+        {
+            Sprite swap_sprite = array->data[i];
+            array->data[i] = insert_sprite;
+            insert_sprite = swap_sprite;
+        }
+    }
+
+    array->data[i] = insert_sprite;
 
     ++array->count;
     ++next_id;
@@ -47,30 +55,46 @@ void sprite_delete(uint32 id)
     if (id == 0)
         return;
 
+    int32 replace_index = -1;
+    int16 layer;
+
     for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
-        bool found = false;
-        for (int layer = 0; layer < SPRITE_LAYERS; ++layer)
+        SpriteArray* array = &sprites[map_id];
+        uint16 i;
+        for (i = 0; i < array->count; ++i)
         {
-            SpriteArray* array = &sprites[map_id][layer];
-            for (int i = 0; i < array->count; ++i)
+            if (replace_index < 0)
             {
                 if (array->data[i].id == id)
                 {
-                    --array->count;
-                    array->data[i] = array->data[array->count];
-
-                    found = true;
-                    break;
+                    replace_index = i;
+                    layer = array->data[i].depth_layer;
                 }
             }
-
-            if (found)
-                break;
+            else
+            {
+                if (array->data[i].depth_layer > layer)
+                {
+                    if (replace_index != i - 1)
+                    {
+                        array->data[replace_index] = array->data[i - 1];
+                        replace_index = i - 1;
+                    }
+                    layer = array->data[i].depth_layer;
+                }
+            }
         }
 
-        if (found)
+        if (replace_index > 0)
+        {
+            if (replace_index != i - 1)
+            {
+                array->data[replace_index] = array->data[i - 1];
+                --array->count;
+            }
             break;
+        }
     }
 }
 
@@ -78,15 +102,12 @@ Sprite* sprite_find(uint32 id)
 {
     for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
-        for (int layer = 0; layer < SPRITE_LAYERS; ++layer)
+        SpriteArray* array = &sprites[map_id];
+        for (int i = 0; i < array->count; ++i)
         {
-            SpriteArray* array = &sprites[map_id][layer];
-            for (int i = 0; i < array->count; ++i)
+            if (array->data[i].id == id)
             {
-                if (array->data[i].id == id)
-                {
-                    return &array->data[i];
-                }
+                return &array->data[i];
             }
         }
     }
@@ -105,46 +126,94 @@ void sprite_set_pos(uint32 id, short x, short y, bool smooth)
     }
 }
 
-void sprite_set_layer(uint32 id, uint16 depth_layer)
+void sprite_set_layer(uint32 id, int16 depth_layer)
 {
-    if (depth_layer >= SPRITE_LAYERS)
-        return;
-
     if (id == 0)
         return;
 
-    for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
+    int32 src_index = -1;
+    int16 src_layer;
+    
+    for (uint16 map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
         bool found = false;
-        for (int layer = 0; layer < SPRITE_LAYERS; ++layer)
+        SpriteArray* array = &sprites[map_id];
+        for (uint16 i = 0; i < array->count; ++i)
         {
-            SpriteArray* src_array = &sprites[map_id][layer];
-            for (int i = 0; i < src_array->count; ++i)
+            if (src_index < 0)
             {
-                if (src_array->data[i].id == id)
+                if (array->data[i].id == id)
                 {
-                    Sprite sprite_data = src_array->data[i];
-
-                    --src_array->count;
-                    src_array->data[i] = src_array->data[src_array->count];
-
-                    SpriteArray* dst_array = &sprites[sprite_data.tex->map_id][depth_layer];
-
-                    dst_array->data[dst_array->count].id = id;
-                    dst_array->data[dst_array->count].x = sprite_data.x;
-                    dst_array->data[dst_array->count].y = sprite_data.y;
-                    dst_array->data[dst_array->count].tex = sprite_data.tex;
-                    dst_array->data[dst_array->count].smooth_pos = false;
-
-                    ++dst_array->count;
+                    src_index = i;
+                    src_layer = array->data[i].depth_layer;
+                    array->data[i].depth_layer = depth_layer;
 
                     found = true;
                     break;
                 }
             }
+        }
 
-            if (found)
-                break;
+        if (src_index >= 0)
+        {
+            if (depth_layer > src_layer)
+            {
+                uint16 i;
+                for (i = src_index + 1; i < array->count; ++i)
+                {
+                    if (array->data[i].depth_layer > src_layer)
+                    {
+                        Sprite swap = array->data[src_index];
+                        array->data[src_index] = array->data[i - 1];
+                        array->data[i - 1] = swap;
+
+                        if (array->data[i].depth_layer == depth_layer)
+                        {
+                            src_index = -1;
+                            break;
+                        }
+
+                        src_index = i;
+                        src_layer = array->data[i].depth_layer;
+                    }
+                }
+
+                if (src_index >= 0)
+                {
+                    Sprite swap = array->data[src_index];
+                    array->data[src_index] = array->data[i - 1];
+                    array->data[i - 1] = swap;
+                }
+            }
+            else if (depth_layer < src_layer)
+            {
+                uint16 i;
+                for (i = src_index - 1; i >= 0; --i)
+                {
+                    if (array->data[i].depth_layer < src_layer)
+                    {
+                        Sprite swap = array->data[src_index];
+                        array->data[src_index] = array->data[i + 1];
+                        array->data[i + 1] = swap;
+
+                        if (array->data[i].depth_layer == depth_layer)
+                        {
+                            src_index = -1;
+                            break;
+                        }
+
+                        src_index = i;
+                        src_layer = array->data[i].depth_layer;
+                    }
+                }
+
+                if (src_index >= 0)
+                {
+                    Sprite swap = array->data[src_index];
+                    array->data[src_index] = array->data[i + 1];
+                    array->data[i + 1] = swap;
+                }
+            }
         }
 
         if (found)

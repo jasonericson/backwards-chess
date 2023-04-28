@@ -1754,6 +1754,7 @@ void game_update()
                                 grid_sq->piece_sprite = held_sprite;
 
                                 sprite_set_pos(held_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
+                                sprite_set_layer(held_sprite, 1);
                                 held_piece.type = Piece_None;
                                 held_sprite = 0;
 

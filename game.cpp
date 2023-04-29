@@ -1079,16 +1079,10 @@ void set_valid_space(short col, short row, bool valid)
     if (valid)
     {
         valid_spaces |= 1ULL << (row * 8 + col);
-        if (sq->overlay_sprite != 0)
-            sprite_delete(sq->overlay_sprite);
-        sq->overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, Layer_SquareHighlight, 0.5f, 1.0f, 0.5f, 0.5f);
     }
     else
     {
         valid_spaces &= ~(1ULL << (row * 8 + col));
-        if (sq->overlay_sprite != 0)
-            sprite_delete(sq->overlay_sprite);
-        sq->overlay_sprite = 0;
     }
 }
 
@@ -1533,6 +1527,26 @@ void set_panel_button_enabled(PieceType piece_type, bool enabled)
         text_set_alpha(btn->count_text_id, 0.4f);
 }
 
+void highlight_square(uint16 col, uint16 row, bool highlight)
+{
+    if (highlight)
+    {
+        if (grid[col][row].overlay_sprite == 0)
+            grid[col][row].overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, Layer_SquareHighlight, 1.0f, 1.0f, 1.0f, 0.4f);
+    }
+    else
+    {
+        if (grid[col][row].overlay_sprite != 0)
+        {
+            sprite_delete(grid[col][row].overlay_sprite);
+            grid[col][row].overlay_sprite = 0;
+        }
+    }
+}
+
+uint16 last_hover_col = 9;
+uint16 last_hover_row = 9;
+
 void game_update()
 {
     if (new_turn)
@@ -1579,7 +1593,8 @@ void game_update()
     }
 
     bool hovering = false;
-    bool over_valid_space = false;
+    bool show_preview = false;
+    bool show_highlights = false;
     bool over_panel = false;
     bool click_used = false;
     for (int i = 0; i < 70; ++i)
@@ -1629,105 +1644,141 @@ void game_update()
                     GridSquare* grid_sq = (GridSquare*)sq.data;
 
                     // place on square
-                    if (held_piece.type != Piece_None && is_valid_space(grid_sq->col, grid_sq->row))
+                    if ((g_mouse_down || g_mouse_long_up) && held_piece.type != Piece_None && is_valid_space(grid_sq->col, grid_sq->row))
                     {
-                        hovering = true;
-                        over_valid_space = true;
-
-                        if (preview_sprite == 0)
+                        if (turn_move)
                         {
-                            preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 1.0f, 1.0f, 1.0f, 0.5f);
+                            test_move(held_last_col, held_last_row, grid_sq->col, grid_sq->row);
                         }
                         else
                         {
-                            sprite_set_pos(preview_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
+                            test_add(held_piece, grid_sq->col, grid_sq->row);
                         }
 
-                        if (g_mouse_down || g_mouse_long_up)
+                        if (!is_king_in_danger(player_white, test_state))
                         {
-                            if (turn_move)
+                            // if space is blank OR has opponent piece
+                            if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
                             {
-                                test_move(held_last_col, held_last_row, grid_sq->col, grid_sq->row);
-                            }
-                            else
-                            {
-                                test_add(held_piece, grid_sq->col, grid_sq->row);
-                            }
-
-                            if (is_king_in_danger(player_white, test_state))
-                            {
-                                over_valid_space = false;
-                            }
-                            else
-                            {
-                                // if space is blank OR has opponent piece
-                                if (grid_sq->piece.type == Piece_None || grid_sq->piece.white != held_piece.white)
+                                // get rid of opponent piece
+                                if (grid_sq->piece_sprite != 0)
                                 {
-                                    // get rid of opponent piece
-                                    if (grid_sq->piece_sprite != 0)
-                                    {
-                                        sprite_delete(grid_sq->piece_sprite);
-                                    }
+                                    sprite_delete(grid_sq->piece_sprite);
+                                }
+                                
+                                if (held_last_col != grid_sq->col || held_last_row != grid_sq->row)
+                                {
+                                    new_turn = true;
                                     
-                                    if (held_last_col != grid_sq->col || held_last_row != grid_sq->row)
+                                    if (held_last_col < 0 || held_last_row < 0)
                                     {
-                                        new_turn = true;
-                                        
-                                        if (held_last_col < 0 || held_last_row < 0)
-                                        {
-                                            // this came from panel, update count
-                                            PieceButton* btn = &piece_buttons[held_piece.type - 1];
-                                            --btn->count[player_white];
+                                        // this came from panel, update count
+                                        PieceButton* btn = &piece_buttons[held_piece.type - 1];
+                                        --btn->count[player_white];
 
-                                            // skip updating text cause we're about to switch to next player's turn anyway
-                                        }
+                                        // skip updating text cause we're about to switch to next player's turn anyway
                                     }
-
-                                    clear_overlays();
-
-                                    grid_sq->piece = held_piece;
-                                    grid_sq->piece_sprite = held_sprite;
-
-                                    if (turn_move)
-                                    {
-                                        grid[held_last_col][held_last_row].piece.type = Piece_None;
-                                    }
-
-                                    sprite_set_pos(held_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
-                                    sprite_set_layer(held_sprite, Layer_PlacedPiece);
-                                    held_piece.type = Piece_None;
-                                    held_sprite = 0;
-
-                                    check_for_check(true);
-                                    check_for_check(false);
-
-                                    held_last_col = -1;
-                                    held_last_row = -1;
                                 }
 
-                                click_used = true;
+                                grid_sq->piece = held_piece;
+                                grid_sq->piece_sprite = held_sprite;
+
+                                if (turn_move)
+                                {
+                                    grid[held_last_col][held_last_row].piece.type = Piece_None;
+                                }
+
+                                sprite_set_pos(held_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
+                                sprite_set_layer(held_sprite, Layer_PlacedPiece);
+                                held_piece.type = Piece_None;
+                                held_sprite = 0;
+
+                                check_for_check(true);
+                                check_for_check(false);
+
+                                held_last_col = -1;
+                                held_last_row = -1;
                             }
-                        }
-                    }
-                    // pick up from square
-                    else if (turn_move && grid_sq->piece.white == player_white && held_piece.type == Piece_None && grid_sq->piece.type != Piece_None)
-                    {
-                        hovering = true;
-                        if (g_mouse_down)
-                        {
-                            set_all_valid_moves(grid_sq->col, grid_sq->row);
-
-                            held_piece = grid_sq->piece;
-                            held_sprite = grid_sq->piece_sprite;
-                            sprite_set_layer(held_sprite, Layer_HeldPiece);
-
-                            held_last_col = grid_sq->col;
-                            held_last_row = grid_sq->row;
-
-                            grid_sq->piece_sprite = 0;
 
                             click_used = true;
                         }
+                    }
+                    // pick up from square
+                    else if (g_mouse_down && turn_move && grid_sq->piece.white == player_white && held_piece.type == Piece_None && grid_sq->piece.type != Piece_None)
+                    {
+                        set_all_valid_moves(grid_sq->col, grid_sq->row);
+
+                        held_piece = grid_sq->piece;
+                        held_sprite = grid_sq->piece_sprite;
+                        sprite_set_layer(held_sprite, Layer_HeldPiece);
+
+                        held_last_col = grid_sq->col;
+                        held_last_row = grid_sq->row;
+
+                        grid_sq->piece_sprite = 0;
+
+                        click_used = true;
+                    }
+
+                    if (held_piece.type != Piece_None)
+                    {
+                        // hovering over origin
+                        if (grid_sq->col == held_last_col && grid_sq->row == held_last_row)
+                        {
+                            show_highlights = true;
+
+                            // newly hovering over this space
+                            if (!(last_hover_col == grid_sq->col && last_hover_row == grid_sq->row))
+                            {
+                                // highlight all valid spaces
+                                for (uint16 row = 0; row < 8; ++row)
+                                {
+                                    for (uint16 col = 0; col < 8; ++col)
+                                    {
+                                        highlight_square(col, row, is_valid_space(col, row));
+                                    }
+                                }
+                            }
+                        }
+                        // hovering over valid space
+                        else if (is_valid_space(grid_sq->col, grid_sq->row))
+                        {
+                            hovering = true;
+                            show_preview = true;
+                            show_highlights = true;
+
+                            // show piece preview
+                            if (preview_sprite == 0)
+                                preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 1.0f, 1.0f, 1.0f, 0.5f);
+                            else
+                                sprite_set_pos(preview_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
+
+                            // newly hovering over this space
+                            if (!(last_hover_col == grid_sq->col && last_hover_row == grid_sq->row))
+                            {
+                                // highlight just this valid space
+                                for (uint16 row = 0; row < 8; ++row)
+                                {
+                                    for (uint16 col = 0; col < 8; ++col)
+                                    {
+                                        highlight_square(col, row, col == grid_sq->col && row == grid_sq->row);
+                                    }
+                                }
+                            }
+                        }
+
+                        last_hover_col = grid_sq->col;
+                        last_hover_row = grid_sq->row;
+                    }
+                    else
+                    {
+                        if (turn_move && grid_sq->piece.white == player_white)
+                        {
+                            hovering = true;
+                        }
+
+                        last_hover_col = 9;
+                        last_hover_row = 9;
                     }
                 }
                 break;
@@ -1749,13 +1800,18 @@ void game_update()
         cursor_set(false);
     }
 
-    if (!over_valid_space)
+    if (!show_preview)
     {
         if (preview_sprite != 0)
         {
             sprite_delete(preview_sprite);
             preview_sprite = 0;
         }
+    }
+
+    if (!show_highlights)
+    {
+        clear_overlays();
     }
 
     if (!click_used && (g_mouse_down || g_mouse_long_up))

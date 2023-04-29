@@ -1745,23 +1745,26 @@ void game_update()
                         {
                             hovering = true;
                             show_preview = true;
-                            show_highlights = true;
-
                             // show piece preview
                             if (preview_sprite == 0)
                                 preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 1.0f, 1.0f, 1.0f, 0.5f);
                             else
                                 sprite_set_pos(preview_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
 
-                            // newly hovering over this space
-                            if (!(last_hover_col == grid_sq->col && last_hover_row == grid_sq->row))
+                            if (turn_move)
                             {
-                                // highlight just this valid space
-                                for (uint16 row = 0; row < 8; ++row)
+                                show_highlights = true;
+
+                                // newly hovering over this space
+                                if (!(last_hover_col == grid_sq->col && last_hover_row == grid_sq->row))
                                 {
-                                    for (uint16 col = 0; col < 8; ++col)
+                                    // highlight just this valid space
+                                    for (uint16 row = 0; row < 8; ++row)
                                     {
-                                        highlight_square(col, row, col == grid_sq->col && row == grid_sq->row);
+                                        for (uint16 col = 0; col < 8; ++col)
+                                        {
+                                            highlight_square(col, row, col == grid_sq->col && row == grid_sq->row);
+                                        }
                                     }
                                 }
                             }

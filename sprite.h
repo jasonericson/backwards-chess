@@ -4,9 +4,15 @@
 
 #include <SDL.h>
 
+enum SpriteMapId : uint16
+{
+    MapId_Font = 0,
+    MapId_Pieces = 1,
+};
+
 struct Texture
 {
-    short map_id;
+    SpriteMapId map_id;
     short width, height;
     float u1, u2, v1, v2;
 };

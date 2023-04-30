@@ -27,7 +27,7 @@ void text_init()
     int16 row = 0;
     for (int i = 0; i < 93; ++i)
     {
-        characters[order[i]] = { 1, 8, 8, (float)col * (8.0f / 128.0f), (float)(col + 1) * (8.0f / 128.0f), (float)row * (8.0f / 128.0f), (float)(row + 1) * (8.0f / 128.0f) };
+        characters[order[i]] = { MapId_Font, 8, 8, (float)col * (8.0f / 128.0f), (float)(col + 1) * (8.0f / 128.0f), (float)row * (8.0f / 128.0f), (float)(row + 1) * (8.0f / 128.0f) };
         col += 1;
         if (col > 11)
         {

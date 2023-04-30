@@ -127,7 +127,7 @@ void render_init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 #endif
 
-    window = SDL_CreateWindow("GAME",
+    window = SDL_CreateWindow("Backwards Chess",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         640, 640, SDL_WINDOW_OPENGL);

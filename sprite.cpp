@@ -1,7 +1,7 @@
 #include "sprite.h"
 
 SpriteArray sprites[NUM_MAPS];
-const char* spritemap_filenames[NUM_MAPS] = { "pieces.png", "font.png" };
+const char* spritemap_filenames[NUM_MAPS] = { "pieces.png", "font.png", "title_font.png" };
 uint32 next_id;
 
 void sprite_init()

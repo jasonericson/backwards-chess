@@ -5,8 +5,8 @@
 
 #include <SDL.h>
 
-Texture board_tex = Texture{ 0, 112, 112, 0.5f, 0.625, 0.375f, 0.5f };
-Texture square_tex = Texture{ 0, 14, 14,  0.75f, 0.765625, 0.484375, 0.5f };
+Texture board_tex = Texture{ 0, 112, 112, 32, 40, 24, 32 };
+Texture square_tex = Texture{ 0, 14, 14,  48, 49, 31, 32 };
 
 uint32 grid_sprites[8][8] = { 0 };
 
@@ -45,12 +45,12 @@ struct Piece
 
 Texture piece_textures[6][2] =
 {
-    /* pawn */   { Texture{ 0, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* rook */   { Texture{ 0, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* knight */ { Texture{ 0, 14, 14, 33.0f / 64.0f, 47.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14, 33.0f / 64.0f, 47.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* bishop */ { Texture{ 0, 14, 14, 49.0f / 64.0f, 63.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ 0, 14, 14, 49.0f / 64.0f, 63.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* queen */  { Texture{ 0, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 18.0f / 64.0f, 0.50f }, Texture{ 0, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 50.0f / 64.0f,  1.0f }},
-    /* king */   { Texture{ 0, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 18.0f / 64.0f, 0.50f }, Texture{ 0, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 50.0f / 64.0f,  1.0f }},
+    /* pawn */   { Texture{ 0, 14, 14,  1, 15,  2, 16 }, Texture{ 0, 14, 14,  1, 15, 34, 48 }},
+    /* rook */   { Texture{ 0, 14, 14, 17, 31,  2, 16 }, Texture{ 0, 14, 14, 17, 31, 34, 48 }},
+    /* knight */ { Texture{ 0, 14, 14, 33, 47,  2, 16 }, Texture{ 0, 14, 14, 33, 47, 34, 48 }},
+    /* bishop */ { Texture{ 0, 14, 14, 49, 63,  2, 16 }, Texture{ 0, 14, 14, 49, 63, 34, 48 }},
+    /* queen */  { Texture{ 0, 14, 14,  1, 15, 18, 32 }, Texture{ 0, 14, 14,  1, 15, 50, 64 }},
+    /* king */   { Texture{ 0, 14, 14, 17, 31, 18, 32 }, Texture{ 0, 14, 14, 17, 31, 50, 64 }},
 };
 
 struct GridSquare

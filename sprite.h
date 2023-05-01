@@ -8,7 +8,7 @@ struct Texture
 {
     short map_id;
     short width, height;
-    float u1, u2, v1, v2;
+    uint16 u1, u2, v1, v2;
 };
 
 struct Sprite
@@ -30,7 +30,7 @@ struct SpriteArray
     int count;
 };
 
-const uint16 NUM_MAPS = 2;
+const uint16 NUM_MAPS = 3;
 
 extern SpriteArray sprites[NUM_MAPS];
 extern const char* spritemap_filenames[NUM_MAPS];

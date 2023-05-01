@@ -2,9 +2,9 @@
 
 #include "sprite.h"
 
-Texture characters[256];
 
 const uint16 TEXT_MAX = 128;
+const uint16 NUM_FONTS = 2;
 struct TextInstance
 {
     uint32 id, sprite_id_start, sprite_id_end;
@@ -20,14 +20,17 @@ struct TextArray
     int count;
 } texts;
 
+Texture characters[NUM_FONTS][256];
+
 void text_init()
 {
+    // default font
     const char* order = "~1234567890-+!@#$%^&*()_={}[]|\\:;\"'<,>.?/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    int16 col = 0;
-    int16 row = 0;
+    uint16 col = 0;
+    uint16 row = 0;
     for (int i = 0; i < 93; ++i)
     {
-        characters[order[i]] = { 1, 8, 8, (float)col * (8.0f / 128.0f), (float)(col + 1) * (8.0f / 128.0f), (float)row * (8.0f / 128.0f), (float)(row + 1) * (8.0f / 128.0f) };
+        characters[Font_Default][order[i]] = { 1, 8, 8, (uint16)(col * 8), (uint16)((col + 1) * 8), (uint16)(row * 8), (uint16)((row + 1) * 8) };
         col += 1;
         if (col > 11)
         {
@@ -38,6 +41,9 @@ void text_init()
 
     text_next_id = 1;
     texts.count = 0;
+
+    // // title font
+    // characters[Font_Title]['B'] = { 2, 11 * 2, 17 * 2, 0 / 64.0f, 11 / 64.0f, 0 / 64.0f,  }
 }
 
 uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left */, float r, float g, float b, float a)
@@ -75,7 +81,7 @@ uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left
     uint32 curr_id = 0;
     while (*next_char != 0)
     {
-        curr_id = sprite_create(&characters[*next_char], next_x, y, 1, r, g, b, a);
+        curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, y, 1, r, g, b, a);
         if (start_id == 0)
             start_id = curr_id;
 
@@ -174,7 +180,7 @@ void text_change(uint32 id, char* text)
             curr_id = 0;
             while (*next_char != 0)
             {
-                curr_id = sprite_create(&characters[*next_char], next_x, t->y, 1, t->r, t->g, t->b, t->a);
+                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, 1, t->r, t->g, t->b, t->a);
                 if (t->sprite_id_start == 0)
                     t->sprite_id_start = curr_id;
 

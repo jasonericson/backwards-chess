@@ -18,6 +18,7 @@ struct SpriteMap
     int16 vertices[2 * 6 * SPRITE_MAX];
     float uvs[2 * 6 * SPRITE_MAX];
     float tints[4 * 6 * SPRITE_MAX];
+    uint16 width, height;
 };
 
 SpriteMap maps[NUM_MAPS];
@@ -166,6 +167,9 @@ void render_init()
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         stbi_image_free(image);
 
+        map->width = imageWidth;
+        map->height = imageHeight;
+
         glGenVertexArrays(1, &map->vao);
         glGenBuffers(1, &map->vbo);
         glGenBuffers(1, &map->ubo);
@@ -263,23 +267,23 @@ void render_update()
                 map->vertices[offset + 11] = sprite->y * 4;
             }
 
-            map->uvs[offset + 0] = sprite->tex->u2;
-            map->uvs[offset + 1] = sprite->tex->v2;
+            map->uvs[offset + 0] = sprite->tex->u2 / (float)map->width;
+            map->uvs[offset + 1] = sprite->tex->v2 / (float)map->height;
 
-            map->uvs[offset + 2] = sprite->tex->u2;
-            map->uvs[offset + 3] = sprite->tex->v1;
+            map->uvs[offset + 2] = sprite->tex->u2 / (float)map->width;
+            map->uvs[offset + 3] = sprite->tex->v1 / (float)map->height;
 
-            map->uvs[offset + 4] = sprite->tex->u1;
-            map->uvs[offset + 5] = sprite->tex->v2;
+            map->uvs[offset + 4] = sprite->tex->u1 / (float)map->width;
+            map->uvs[offset + 5] = sprite->tex->v2 / (float)map->height;
 
-            map->uvs[offset + 6] = sprite->tex->u2;
-            map->uvs[offset + 7] = sprite->tex->v1;
+            map->uvs[offset + 6] = sprite->tex->u2 / (float)map->width;
+            map->uvs[offset + 7] = sprite->tex->v1 / (float)map->height;
 
-            map->uvs[offset + 8] = sprite->tex->u1;
-            map->uvs[offset + 9] = sprite->tex->v1;
+            map->uvs[offset + 8] = sprite->tex->u1 / (float)map->width;
+            map->uvs[offset + 9] = sprite->tex->v1 / (float)map->height;
 
-            map->uvs[offset + 10] = sprite->tex->u1;
-            map->uvs[offset + 11] = sprite->tex->v2;
+            map->uvs[offset + 10] = sprite->tex->u1 / (float)map->width;
+            map->uvs[offset + 11] = sprite->tex->v2 / (float)map->height;
 
             for (int i = 0; i < 6; ++i)
             {

@@ -5,8 +5,8 @@
 
 #include <SDL.h>
 
-Texture board_tex = Texture{ MapId_Pieces, 112, 112, 0.5f, 0.625, 0.375f, 0.5f };
-Texture square_tex = Texture{ MapId_Pieces, 14, 14,  0.75f, 0.765625, 0.484375, 0.5f };
+Texture board_tex = Texture{ MapId_Pieces, 112, 112, 32, 40, 24, 32 };
+Texture square_tex = Texture{ MapId_Pieces, 14, 14,  48, 49, 31, 32 };
 
 uint32 grid_sprites[8][8] = { 0 };
 
@@ -45,12 +45,12 @@ struct Piece
 
 Texture piece_textures[6][2] =
 {
-    /* pawn */   { Texture{ MapId_Pieces, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ MapId_Pieces, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* rook */   { Texture{ MapId_Pieces, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ MapId_Pieces, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* knight */ { Texture{ MapId_Pieces, 14, 14, 33.0f / 64.0f, 47.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ MapId_Pieces, 14, 14, 33.0f / 64.0f, 47.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* bishop */ { Texture{ MapId_Pieces, 14, 14, 49.0f / 64.0f, 63.0f / 64.0f,  2.0f / 64.0f, 0.25f }, Texture{ MapId_Pieces, 14, 14, 49.0f / 64.0f, 63.0f / 64.0f, 34.0f / 64.0f, 0.75f }},
-    /* queen */  { Texture{ MapId_Pieces, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 18.0f / 64.0f, 0.50f }, Texture{ MapId_Pieces, 14, 14,  1.0f / 64.0f, 15.0f / 64.0f, 50.0f / 64.0f,  1.0f }},
-    /* king */   { Texture{ MapId_Pieces, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 18.0f / 64.0f, 0.50f }, Texture{ MapId_Pieces, 14, 14, 17.0f / 64.0f, 31.0f / 64.0f, 50.0f / 64.0f,  1.0f }},
+    /* pawn */   { Texture{ MapId_Pieces, 14, 14,  1, 15,  2, 16 }, Texture{ MapId_Pieces, 14, 14,  1, 15, 34, 48 }},
+    /* rook */   { Texture{ MapId_Pieces, 14, 14, 17, 31,  2, 16 }, Texture{ MapId_Pieces, 14, 14, 17, 31, 34, 48 }},
+    /* knight */ { Texture{ MapId_Pieces, 14, 14, 33, 47,  2, 16 }, Texture{ MapId_Pieces, 14, 14, 33, 47, 34, 48 }},
+    /* bishop */ { Texture{ MapId_Pieces, 14, 14, 49, 63,  2, 16 }, Texture{ MapId_Pieces, 14, 14, 49, 63, 34, 48 }},
+    /* queen */  { Texture{ MapId_Pieces, 14, 14,  1, 15, 18, 32 }, Texture{ MapId_Pieces, 14, 14,  1, 15, 50, 64 }},
+    /* king */   { Texture{ MapId_Pieces, 14, 14, 17, 31, 18, 32 }, Texture{ MapId_Pieces, 14, 14, 17, 31, 50, 64 }},
 };
 
 struct GridSquare
@@ -1033,7 +1033,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, r, g, b);
+            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, Font_Default, r, g, b);
 
             *check_state = CS_CheckMate;
         }
@@ -1044,7 +1044,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Check", message_x, 20, Align_Center, r, g, b);
+            *message_id = text_create("Check", message_x, 20, Align_Center, Font_Default, r, g, b);
 
             *check_state = CS_Check;
         }
@@ -1055,7 +1055,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Stalemate", message_x, 20, Align_Center, r, g, b);
+            *message_id = text_create("Stalemate", message_x, 20, Align_Center, Font_Default, r, g, b);
 
             *check_state = CS_StaleMate;
         }
@@ -1532,7 +1532,7 @@ void highlight_square(uint16 col, uint16 row, bool highlight)
     if (highlight)
     {
         if (grid[col][row].overlay_sprite == 0)
-            grid[col][row].overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, Layer_SquareHighlight, 1.0f, 1.0f, 1.0f, 0.4f);
+            grid[col][row].overlay_sprite = sprite_create(&square_tex, grid_pos_x + col * 14, grid_pos_y + row * 14, Layer_SquareHighlight, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.4f);
     }
     else
     {
@@ -1747,7 +1747,7 @@ void game_update()
                             show_preview = true;
                             // show piece preview
                             if (preview_sprite == 0)
-                                preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 1.0f, 1.0f, 1.0f, 0.5f);
+                                preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f);
                             else
                                 sprite_set_pos(preview_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
 

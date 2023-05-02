@@ -2,9 +2,9 @@
 
 #include "sprite.h"
 
-Texture characters[256];
 
 const uint16 TEXT_MAX = 128;
+const uint16 NUM_FONTS = 2;
 struct TextInstance
 {
     uint32 id, sprite_id_start, sprite_id_end;
@@ -20,14 +20,17 @@ struct TextArray
     int count;
 } texts;
 
+Texture characters[NUM_FONTS][256];
+
 void text_init()
 {
+    // default font
     const char* order = "~1234567890-+!@#$%^&*()_={}[]|\\:;\"'<,>.?/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    int16 col = 0;
-    int16 row = 0;
+    uint16 col = 0;
+    uint16 row = 0;
     for (int i = 0; i < 93; ++i)
     {
-        characters[order[i]] = { MapId_Font, 8, 8, (float)col * (8.0f / 128.0f), (float)(col + 1) * (8.0f / 128.0f), (float)row * (8.0f / 128.0f), (float)(row + 1) * (8.0f / 128.0f) };
+        characters[Font_Default][order[i]] = { MapId_Font, 8, 8, (uint16)(col * 8), (uint16)((col + 1) * 8), (uint16)(row * 8), (uint16)((row + 1) * 8) };
         col += 1;
         if (col > 11)
         {
@@ -38,35 +41,49 @@ void text_init()
 
     text_next_id = 1;
     texts.count = 0;
+
+    // title font
+    characters[Font_Title][' '] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 63, 64, 63, 64 };
+    characters[Font_Title]['B'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5),  0, 11,  0, 17 };
+    characters[Font_Title]['C'] = { 2, (short)(12 * 1.5), (short)(17 * 1.5),  0, 12, 36, 53 };
+    characters[Font_Title]['a'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 12, 23,  0, 17 };
+    characters[Font_Title]['c'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 24, 35,  0, 17 };
+    characters[Font_Title]['d'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 26, 37, 18, 35 };
+    characters[Font_Title]['e'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 25, 36, 36, 53 };
+    characters[Font_Title]['h'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 13, 24, 36, 53 };
+    characters[Font_Title]['k'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 36, 47,  0, 17 };
+    characters[Font_Title]['r'] = { 2, (short)(11 * 1.5), (short)(17 * 1.5), 14, 25, 18, 35 };
+    characters[Font_Title]['s'] = { 2, (short)( 9 * 1.5), (short)(17 * 1.5), 38, 47, 18, 35 };
+    characters[Font_Title]['w'] = { 2, (short)(13 * 1.5), (short)(17 * 1.5),  0, 13, 18, 35 };
 }
 
-uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left */, float r, float g, float b, float a)
+uint32 text_create(char* text, short x, short y, TextAlign align, Font font, float r, float g, float b, float a)
 {
     char* next_char = text;
     short next_x = x;
 
     if (align == Align_Center)
     {
-        int num_chars = 0;
+        uint16 total_width = 0;
         while (*next_char != 0)
         {
-            ++num_chars;
+            total_width += characters[font][*next_char].width;
             ++next_char;
         }
 
-        next_x = x - ((7 * num_chars) / 2);
+        next_x = x - (total_width / 2);
         next_char = text;
     }
     else if (align == Align_Right)
     {
-        int num_chars = 0;
+        uint16 total_width = 0;
         while (*next_char != 0)
         {
-            ++num_chars;
+            total_width += characters[font][*next_char].width;
             ++next_char;
         }
 
-        next_x = x - (7 * num_chars);
+        next_x = x - total_width;
         next_char = text;
     }
 
@@ -75,11 +92,12 @@ uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left
     uint32 curr_id = 0;
     while (*next_char != 0)
     {
-        curr_id = sprite_create(&characters[*next_char], next_x, y, 1, r, g, b, a);
+        Texture* tex = &characters[font][*next_char];
+        curr_id = sprite_create(tex, next_x, y, 1, -1.0f, 1.0f, r, g, b, a);
         if (start_id == 0)
             start_id = curr_id;
 
-        next_x += 7;
+        next_x += tex->width;
         ++next_char;
     }
 
@@ -99,9 +117,9 @@ uint32 text_create(char* text, short x, short y, TextAlign align /* = Align_Left
     }
 }
 
-uint32 text_create(const char* text, short x, short y, TextAlign align, float r, float g, float b, float a)
+uint32 text_create(const char* text, short x, short y, TextAlign align, Font font, float r, float g, float b, float a)
 {
-    return text_create((char*)text, x, y, align, r, g, b, a);
+    return text_create((char*)text, x, y, align, font, r, g, b, a);
 }
 
 void text_delete(uint32 id)
@@ -174,7 +192,7 @@ void text_change(uint32 id, char* text)
             curr_id = 0;
             while (*next_char != 0)
             {
-                curr_id = sprite_create(&characters[*next_char], next_x, t->y, 1, t->r, t->g, t->b, t->a);
+                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, 1, -1.0f, 1.0f, t->r, t->g, t->b, t->a);
                 if (t->sprite_id_start == 0)
                     t->sprite_id_start = curr_id;
 
@@ -228,6 +246,18 @@ void text_set_alpha(uint32 id, float a)
             }
 
             break;
+        }
+    }
+}
+
+void text_set_char_scale(uint32 id, uint16 char_index, float w, float h)
+{
+    for (uint16 i = 0; i < texts.count; ++i)
+    {
+        if (texts.data[i].id == id)
+        {
+            TextInstance* t = &texts.data[i];
+            
         }
     }
 }

@@ -38,6 +38,6 @@ endif()
 
 add_custom_command(
     TARGET BackwardsChess PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:BackwardsChess> ${PROJECT_SOURCE_DIR}/pieces.png ${PROJECT_SOURCE_DIR}/font.png
+    COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:BackwardsChess> ${PROJECT_SOURCE_DIR}/pieces.png ${PROJECT_SOURCE_DIR}/font.png ${PROJECT_SOURCE_DIR}/title_font.png
     VERBATIM
 )

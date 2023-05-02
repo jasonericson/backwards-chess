@@ -8,6 +8,7 @@ enum SpriteMapId : uint16
 {
     MapId_Font = 0,
     MapId_Pieces = 1,
+    MapId_FontTitle = 2,
 };
 
 struct Texture

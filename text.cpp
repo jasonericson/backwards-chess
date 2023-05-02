@@ -93,7 +93,7 @@ uint32 text_create(char* text, short x, short y, TextAlign align, Font font, flo
     while (*next_char != 0)
     {
         Texture* tex = &characters[font][*next_char];
-        curr_id = sprite_create(tex, next_x, y, 1, r, g, b, a);
+        curr_id = sprite_create(tex, next_x, y, 1, -1.0f, 1.0f, r, g, b, a);
         if (start_id == 0)
             start_id = curr_id;
 
@@ -192,7 +192,7 @@ void text_change(uint32 id, char* text)
             curr_id = 0;
             while (*next_char != 0)
             {
-                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, 1, t->r, t->g, t->b, t->a);
+                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, 1, -1.0f, 1.0f, t->r, t->g, t->b, t->a);
                 if (t->sprite_id_start == 0)
                     t->sprite_id_start = curr_id;
 
@@ -246,6 +246,18 @@ void text_set_alpha(uint32 id, float a)
             }
 
             break;
+        }
+    }
+}
+
+void text_set_char_scale(uint32 id, uint16 char_index, float w, float h)
+{
+    for (uint16 i = 0; i < texts.count; ++i)
+    {
+        if (texts.data[i].id == id)
+        {
+            TextInstance* t = &texts.data[i];
+            
         }
     }
 }

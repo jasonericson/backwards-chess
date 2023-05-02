@@ -22,3 +22,4 @@ void text_delete(uint32 id);
 void text_change(uint32 id, char* text);
 void text_set_color(uint32 id, float r, float g, float b);
 void text_set_alpha(uint32 id, float a);
+void text_set_char_scale(uint32 id, uint16 char_index, float w, float h);

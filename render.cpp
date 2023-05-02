@@ -138,7 +138,7 @@ void render_init()
     glewInit();
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -217,24 +217,24 @@ void render_update()
             if (sprite->smooth_pos)
             {
                 // top right
-                map->vertices[offset + 0] = sprite->x + sprite->tex->width * 4;
+                map->vertices[offset + 0] = sprite->x + sprite->tex->width * 4 * sprite->w;
                 map->vertices[offset + 1] = sprite->y;
 
                 // bottom right
-                map->vertices[offset + 2] = sprite->x + sprite->tex->width * 4;
-                map->vertices[offset + 3] = sprite->y + sprite->tex->height * 4;
+                map->vertices[offset + 2] = sprite->x + sprite->tex->width * 4 * sprite->w;
+                map->vertices[offset + 3] = sprite->y + sprite->tex->height * 4 * sprite->h;
 
                 // top left
                 map->vertices[offset + 4] = sprite->x;
                 map->vertices[offset + 5] = sprite->y;
 
                 // bottom right
-                map->vertices[offset + 6] = sprite->x + sprite->tex->width * 4;
-                map->vertices[offset + 7] = sprite->y + sprite->tex->height * 4;
+                map->vertices[offset + 6] = sprite->x + sprite->tex->width * 4 * sprite->w;
+                map->vertices[offset + 7] = sprite->y + sprite->tex->height * 4 * sprite->h;
 
                 // bottom left
                 map->vertices[offset + 8] = sprite->x;
-                map->vertices[offset + 9] = sprite->y + sprite->tex->height * 4;
+                map->vertices[offset + 9] = sprite->y + sprite->tex->height * 4 * sprite->h;
 
                 // top left
                 map->vertices[offset + 10] = sprite->x;
@@ -243,24 +243,24 @@ void render_update()
             else
             {
                 // top right
-                map->vertices[offset + 0] = sprite->x * 4 + sprite->tex->width * 4;
+                map->vertices[offset + 0] = sprite->x * 4 + sprite->tex->width * 4 * sprite->w;
                 map->vertices[offset + 1] = sprite->y * 4;
 
                 // bottom right
-                map->vertices[offset + 2] = sprite->x * 4 + sprite->tex->width * 4;
-                map->vertices[offset + 3] = sprite->y * 4 + sprite->tex->height * 4;
+                map->vertices[offset + 2] = sprite->x * 4 + sprite->tex->width * 4 * sprite->w;
+                map->vertices[offset + 3] = sprite->y * 4 + sprite->tex->height * 4 * sprite->h;
 
                 // top left
                 map->vertices[offset + 4] = sprite->x * 4;
                 map->vertices[offset + 5] = sprite->y * 4;
 
                 // bottom right
-                map->vertices[offset + 6] = sprite->x * 4 + sprite->tex->width * 4;
-                map->vertices[offset + 7] = sprite->y * 4 + sprite->tex->height * 4;
+                map->vertices[offset + 6] = sprite->x * 4 + sprite->tex->width * 4 * sprite->w;
+                map->vertices[offset + 7] = sprite->y * 4 + sprite->tex->height * 4 * sprite->h;
 
                 // bottom left
                 map->vertices[offset + 8] = sprite->x * 4;
-                map->vertices[offset + 9] = sprite->y * 4 + sprite->tex->height * 4;
+                map->vertices[offset + 9] = sprite->y * 4 + sprite->tex->height * 4 * sprite->h;
 
                 // top left
                 map->vertices[offset + 10] = sprite->x * 4;

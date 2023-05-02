@@ -42,13 +42,15 @@ void debug_check_sprites()
     }
 }
 
-uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float r, float g, float b, float a)
+uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float w, float h, float r, float g, float b, float a)
 {
     uint32 this_id = next_id;
     Sprite insert_sprite;
     insert_sprite.id = this_id;
     insert_sprite.x = x;
     insert_sprite.y = y;
+    insert_sprite.w = w;
+    insert_sprite.h = h;
     insert_sprite.depth_layer = depth_layer;
     insert_sprite.tex = tex;
     insert_sprite.smooth_pos = false;

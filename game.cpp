@@ -1758,12 +1758,30 @@ void game_update()
                                 // newly hovering over this space
                                 if (!(last_hover_col == grid_sq->col && last_hover_row == grid_sq->row))
                                 {
-                                    // highlight just this valid space
-                                    for (uint16 row = 0; row < 8; ++row)
+                                    clear_overlays();
+
+                                    if (held_piece.type == Piece_Pawn || held_piece.type == Piece_King || held_piece.type == Piece_Knight)
                                     {
-                                        for (uint16 col = 0; col < 8; ++col)
+                                        highlight_square(grid_sq->col, grid_sq->row, true);
+                                    }
+                                    else
+                                    {
+                                        int16 col_it = grid_sq->col - held_last_col;
+                                        if (col_it != 0)
+                                            col_it = SDL_abs(col_it) / col_it;
+
+                                        int16 row_it = grid_sq->row - held_last_row;
+                                        if (row_it != 0)
+                                            row_it = SDL_abs(row_it) / row_it;
+
+                                        uint16 col = held_last_col;
+                                        uint16 row = held_last_row;
+                                        while (col != grid_sq->col || row != grid_sq->row)
                                         {
-                                            highlight_square(col, row, col == grid_sq->col && row == grid_sq->row);
+                                            col += col_it;
+                                            row += row_it;
+
+                                            highlight_square(col, row, true);
                                         }
                                     }
                                 }

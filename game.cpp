@@ -1747,7 +1747,7 @@ void game_update()
                             show_preview = true;
                             // show piece preview
                             if (preview_sprite == 0)
-                                preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f);
+                                preview_sprite = sprite_create(piece_textures[held_piece.type - 1], grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14, Layer_PlacedPiece, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f);
                             else
                                 sprite_set_pos(preview_sprite, grid_pos_x + grid_sq->col * 14, grid_pos_y + grid_sq->row * 14);
 

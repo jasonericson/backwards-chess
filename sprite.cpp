@@ -277,3 +277,13 @@ void sprite_set_color(uint32 id, float r, float g, float b, float a)
         sprite->a = a;
     }
 }
+
+void sprite_set_scale(uint32 id, float w, float h)
+{
+    Sprite* sprite = sprite_find(id);
+    if (sprite != nullptr)
+    {
+        sprite->w = w;
+        sprite->h = h;
+    }
+}

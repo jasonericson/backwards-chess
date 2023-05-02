@@ -175,31 +175,6 @@ void switch_panel_color(bool white)
     }
 }
 
-void game_init()
-{
-    grid_pos_x = 160 - 112 - 8;
-    grid_pos_y = 160 - 112 - 8;
-    sprite_create(&board_tex, grid_pos_x, grid_pos_y, Layer_Board);
-
-    setup_panel();
-
-    for (short col = 0; col < 8; ++col)
-    {
-        for (short row = 0; row < 8; ++row)
-        {
-            grid[col][row].piece_sprite = 0;
-            grid[col][row].overlay_sprite = 0;
-            grid[col][row].col = col;
-            grid[col][row].row = row;
-            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, true, &grid[col][row] };
-        }
-    }
-
-    held_piece.type = Piece_None;
-    held_sprite = 0;
-    preview_sprite = 0;
-}
-
 bool is_king_in_danger(bool white, GridSquare (&state)[8][8])
 {
     short king_row = -1;
@@ -1547,6 +1522,39 @@ void highlight_square(uint16 col, uint16 row, bool highlight)
 uint16 last_hover_col = 9;
 uint16 last_hover_row = 9;
 
+uint32 title_id;
+
+void game_init()
+{
+    grid_pos_x = 160 - 112 - 8;
+    grid_pos_y = 160 - 112 - 8;
+    sprite_create(&board_tex, grid_pos_x, grid_pos_y, Layer_Board);
+
+    setup_panel();
+
+    for (short col = 0; col < 8; ++col)
+    {
+        for (short row = 0; row < 8; ++row)
+        {
+            grid[col][row].piece_sprite = 0;
+            grid[col][row].overlay_sprite = 0;
+            grid[col][row].col = col;
+            grid[col][row].row = row;
+            clicky_squares[6 + (8 * col + row)] = ClickySquare { (short)(grid_pos_x + col * 14), (short)(grid_pos_y + row * 14), 14, 14, Action::Action_GridSquare, true, &grid[col][row] };
+        }
+    }
+
+    held_piece.type = Piece_None;
+    held_sprite = 0;
+    preview_sprite = 0;
+
+    // title_id = text_create("Backwards", 15, 80, Align_Left, Font_Title);
+}
+
+// float title_char_w = 1.0f;
+// const float title_spin_speed = 2.0f / 60.0f;
+// float title_spin_dir = -1.0f;
+
 void game_update()
 {
     if (new_turn)
@@ -1591,6 +1599,18 @@ void game_update()
         ++turn;
         new_turn = false;
     }
+
+    // title_char_w += title_spin_dir * title_spin_speed;
+    // if (SDL_fabs(title_char_w) > 1.0f)
+    // {
+    //     title_char_w = title_spin_dir;
+    //     title_spin_dir *= -1.0f;
+    // }
+
+    // for (uint16 i = 0; i < 9; ++i)
+    // {
+    //     text_set_char_scale(title_id, i, title_char_w, 1.0f);
+    // }
 
     bool hovering = false;
     bool show_preview = false;

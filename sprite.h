@@ -50,3 +50,4 @@ Sprite* sprite_find(uint32 id);
 void sprite_set_pos(uint32 id, short x, short y, bool smooth = false);
 void sprite_set_layer(uint32 id, int16 depth_layer);
 void sprite_set_color(uint32 id, float r, float g, float b, float a = 1.0f);
+void sprite_set_scale(uint32 id, float w, float h);

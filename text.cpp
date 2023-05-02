@@ -43,18 +43,18 @@ void text_init()
     texts.count = 0;
 
     // title font
-    characters[Font_Title][' '] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 63, 64, 63, 64 };
-    characters[Font_Title]['B'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5),  0, 11,  0, 17 };
-    characters[Font_Title]['C'] = { MapId_FontTitle, (short)(12 * 1.5), (short)(17 * 1.5),  0, 12, 36, 53 };
-    characters[Font_Title]['a'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 12, 23,  0, 17 };
-    characters[Font_Title]['c'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 24, 35,  0, 17 };
-    characters[Font_Title]['d'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 26, 37, 18, 35 };
-    characters[Font_Title]['e'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 25, 36, 36, 53 };
-    characters[Font_Title]['h'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 13, 24, 36, 53 };
-    characters[Font_Title]['k'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 36, 47,  0, 17 };
-    characters[Font_Title]['r'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 14, 25, 18, 35 };
-    characters[Font_Title]['s'] = { MapId_FontTitle, (short)( 9 * 1.5), (short)(17 * 1.5), 38, 47, 18, 35 };
-    characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1.5), (short)(17 * 1.5),  0, 13, 18, 35 };
+    characters[Font_Title][' '] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 63, 64, 63, 64 };
+    characters[Font_Title]['B'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1),  0, 11,  0, 17 };
+    characters[Font_Title]['C'] = { MapId_FontTitle, (short)(12 * 1), (short)(17 * 1),  0, 12, 36, 53 };
+    characters[Font_Title]['a'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 12, 23,  0, 17 };
+    characters[Font_Title]['c'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 24, 35,  0, 17 };
+    characters[Font_Title]['d'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 26, 37, 18, 35 };
+    characters[Font_Title]['e'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 25, 36, 36, 53 };
+    characters[Font_Title]['h'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 13, 24, 36, 53 };
+    characters[Font_Title]['k'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 36, 47,  0, 17 };
+    characters[Font_Title]['r'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 14, 25, 18, 35 };
+    characters[Font_Title]['s'] = { MapId_FontTitle, (short)( 9 * 1), (short)(17 * 1), 38, 47, 18, 35 };
+    characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1), (short)(17 * 1),  0, 13, 18, 35 };
 }
 
 uint32 text_create(char* text, short x, short y, TextAlign align, Font font, float r, float g, float b, float a)
@@ -257,7 +257,11 @@ void text_set_char_scale(uint32 id, uint16 char_index, float w, float h)
         if (texts.data[i].id == id)
         {
             TextInstance* t = &texts.data[i];
-            
+            uint32 sprite_id = t->sprite_id_start + char_index;
+            SDL_assert(sprite_id <= t->sprite_id_end);
+            sprite_set_scale(sprite_id, w, h);
+
+            break;
         }
     }
 }

@@ -214,58 +214,37 @@ void render_update()
             int offset = 2 * 6 * j;
             Sprite* sprite = sprite_array->data + j;
 
-            if (sprite->smooth_pos)
-            {
-                // top right
-                map->vertices[offset + 0] = sprite->x + sprite->tex->width * 4 * sprite->w;
-                map->vertices[offset + 1] = sprite->y;
+            int16 x = sprite->smooth_pos ? sprite->x : sprite->x * 4;
+            int16 y = sprite->smooth_pos ? sprite->y : sprite->y * 4;
 
-                // bottom right
-                map->vertices[offset + 2] = sprite->x + sprite->tex->width * 4 * sprite->w;
-                map->vertices[offset + 3] = sprite->y + sprite->tex->height * 4 * sprite->h;
+            int16 right = x + sprite->tex->width  * 4 * 0.5f * (1.0f + sprite->w);
+            int16 left  = x + sprite->tex->width  * 4 * 0.5f * (1.0f - sprite->w);
+            int16 top   = y + sprite->tex->height * 4 * 0.5f * (1.0f - sprite->h);
+            int16 bot   = y + sprite->tex->height * 4 * 0.5f * (1.0f + sprite->h);
 
-                // top left
-                map->vertices[offset + 4] = sprite->x;
-                map->vertices[offset + 5] = sprite->y;
+            // top right
+            map->vertices[offset + 0] = right;
+            map->vertices[offset + 1] = top;
 
-                // bottom right
-                map->vertices[offset + 6] = sprite->x + sprite->tex->width * 4 * sprite->w;
-                map->vertices[offset + 7] = sprite->y + sprite->tex->height * 4 * sprite->h;
+            // bottom right
+            map->vertices[offset + 2] = right;
+            map->vertices[offset + 3] = bot;
 
-                // bottom left
-                map->vertices[offset + 8] = sprite->x;
-                map->vertices[offset + 9] = sprite->y + sprite->tex->height * 4 * sprite->h;
+            // top left
+            map->vertices[offset + 4] = left;
+            map->vertices[offset + 5] = top;
 
-                // top left
-                map->vertices[offset + 10] = sprite->x;
-                map->vertices[offset + 11] = sprite->y;
-            }
-            else
-            {
-                // top right
-                map->vertices[offset + 0] = sprite->x * 4 + sprite->tex->width * 4 * sprite->w;
-                map->vertices[offset + 1] = sprite->y * 4;
+            // bottom right
+            map->vertices[offset + 6] = right;
+            map->vertices[offset + 7] = bot;
 
-                // bottom right
-                map->vertices[offset + 2] = sprite->x * 4 + sprite->tex->width * 4 * sprite->w;
-                map->vertices[offset + 3] = sprite->y * 4 + sprite->tex->height * 4 * sprite->h;
+            // bottom left
+            map->vertices[offset + 8] = left;
+            map->vertices[offset + 9] = bot;
 
-                // top left
-                map->vertices[offset + 4] = sprite->x * 4;
-                map->vertices[offset + 5] = sprite->y * 4;
-
-                // bottom right
-                map->vertices[offset + 6] = sprite->x * 4 + sprite->tex->width * 4 * sprite->w;
-                map->vertices[offset + 7] = sprite->y * 4 + sprite->tex->height * 4 * sprite->h;
-
-                // bottom left
-                map->vertices[offset + 8] = sprite->x * 4;
-                map->vertices[offset + 9] = sprite->y * 4 + sprite->tex->height * 4 * sprite->h;
-
-                // top left
-                map->vertices[offset + 10] = sprite->x * 4;
-                map->vertices[offset + 11] = sprite->y * 4;
-            }
+            // top left
+            map->vertices[offset + 10] = left;
+            map->vertices[offset + 11] = top;
 
             map->uvs[offset + 0] = sprite->tex->u2 / (float)map->width;
             map->uvs[offset + 1] = sprite->tex->v2 / (float)map->height;

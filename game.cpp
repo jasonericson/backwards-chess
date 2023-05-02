@@ -1033,7 +1033,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, r, g, b);
+            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, Font_Default, r, g, b);
 
             *check_state = CS_CheckMate;
         }
@@ -1044,7 +1044,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Check", message_x, 20, Align_Center, r, g, b);
+            *message_id = text_create("Check", message_x, 20, Align_Center, Font_Default, r, g, b);
 
             *check_state = CS_Check;
         }
@@ -1055,7 +1055,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Stalemate", message_x, 20, Align_Center, r, g, b);
+            *message_id = text_create("Stalemate", message_x, 20, Align_Center, Font_Default, r, g, b);
 
             *check_state = CS_StaleMate;
         }

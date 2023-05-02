@@ -1,9 +1,13 @@
 #pragma once
 
-typedef short           int16;
-typedef int             int32;
-typedef unsigned short  uint16;
-typedef unsigned int    uint32;
+#include <SDL.h>
+
+typedef short               int16;
+typedef unsigned short      uint16;
+typedef int                 int32;
+typedef unsigned int        uint32;
+typedef long long           int64;
+typedef unsigned long long  uint64;
 
 extern bool g_mouse_down;
 extern bool g_mouse_up;

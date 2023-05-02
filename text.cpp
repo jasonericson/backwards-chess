@@ -57,7 +57,7 @@ void text_init()
     characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1), (short)(17 * 1),  0, 13, 18, 35 };
 }
 
-uint32 text_create(char* text, short x, short y, TextAlign align, Font font, float r, float g, float b, float a)
+uint32 text_create(char* text, short x, short y, TextAlign align, Font font, float w, float h, float r, float g, float b, float a)
 {
     char* next_char = text;
     short next_x = x;
@@ -93,7 +93,7 @@ uint32 text_create(char* text, short x, short y, TextAlign align, Font font, flo
     while (*next_char != 0)
     {
         Texture* tex = &characters[font][*next_char];
-        curr_id = sprite_create(tex, next_x, y, 1, 1.0f, 1.0f, r, g, b, a);
+        curr_id = sprite_create(tex, next_x, y, 1, w, h, r, g, b, a);
         if (start_id == 0)
             start_id = curr_id;
 
@@ -117,9 +117,9 @@ uint32 text_create(char* text, short x, short y, TextAlign align, Font font, flo
     }
 }
 
-uint32 text_create(const char* text, short x, short y, TextAlign align, Font font, float r, float g, float b, float a)
+uint32 text_create(const char* text, short x, short y, TextAlign align, Font font, float w, float h, float r, float g, float b, float a)
 {
-    return text_create((char*)text, x, y, align, font, r, g, b, a);
+    return text_create((char*)text, x, y, align, font, w, h, r, g, b, a);
 }
 
 void text_delete(uint32 id)

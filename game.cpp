@@ -1008,7 +1008,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, Font_Default, r, g, b);
+            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, Font_Default, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_CheckMate;
         }
@@ -1019,7 +1019,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Check", message_x, 20, Align_Center, Font_Default, r, g, b);
+            *message_id = text_create("Check", message_x, 20, Align_Center, Font_Default, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_Check;
         }
@@ -1030,7 +1030,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Stalemate", message_x, 20, Align_Center, Font_Default, r, g, b);
+            *message_id = text_create("Stalemate", message_x, 20, Align_Center, Font_Default, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_StaleMate;
         }
@@ -1548,12 +1548,15 @@ void game_init()
     held_sprite = 0;
     preview_sprite = 0;
 
-    // title_id = text_create("Backwards", 15, 80, Align_Left, Font_Title);
+    // title_id = text_create("Backwards", 15, 80, Align_Left, Font_Title, -1.0f);
 }
 
-// float title_char_w = 1.0f;
-// const float title_spin_speed = 2.0f / 60.0f;
-// float title_spin_dir = -1.0f;
+float title_char_w = 1.0f;
+float title_spin_dir = -1.0f;
+
+const float animate_start_time = 0.5f;
+const float next_char_delay = 0.05f;
+const float title_spin_duration = 0.6f;
 
 void game_update()
 {
@@ -1600,16 +1603,16 @@ void game_update()
         new_turn = false;
     }
 
-    // title_char_w += title_spin_dir * title_spin_speed;
-    // if (SDL_fabs(title_char_w) > 1.0f)
-    // {
-    //     title_char_w = title_spin_dir;
-    //     title_spin_dir *= -1.0f;
-    // }
-
+    // float time_s = SDL_GetTicks64() / 1000.0f;
+    // float time_elapsed = time_s - animate_start_time;
     // for (uint16 i = 0; i < 9; ++i)
     // {
-    //     text_set_char_scale(title_id, i, title_char_w, 1.0f);
+    //     float time_since_char_start = time_elapsed - i * next_char_delay;
+    //     float a = SDL_clamp(time_since_char_start / title_spin_duration, 0.0f, 1.0f);
+    //     // float v = a < 0.5f ? 4.0f * a * a * a : 1.0f - (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) / 2.0f;
+    //     float v = a < 0.5f ? 2.0f * a * a : 1.0f - (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) / 2.0f;
+    //     float w = v * 2.0f - 1.0f;
+    //     text_set_char_scale(title_id, i, w, 1.0f);
     // }
 
     bool hovering = false;

@@ -60,45 +60,51 @@ void text_init()
 uint32 text_create(char* text, short x, short y, TextAlign align, Font font, float w, float h, float r, float g, float b, float a)
 {
     char* next_char = text;
-    short next_x = x;
-
-    if (align == Align_Center)
-    {
-        uint16 total_width = 0;
-        while (*next_char != 0)
-        {
-            total_width += characters[font][*next_char].width;
-            ++next_char;
-        }
-
-        next_x = x - (total_width / 2);
-        next_char = text;
-    }
-    else if (align == Align_Right)
-    {
-        uint16 total_width = 0;
-        while (*next_char != 0)
-        {
-            total_width += characters[font][*next_char].width;
-            ++next_char;
-        }
-
-        next_x = x - total_width;
-        next_char = text;
-    }
-
+    uint16 next_x;
+    uint16 next_y = y;
+    
     uint32 start_id = 0;
     uint32 end_id = 0;
     uint32 curr_id = 0;
+    uint16 row = 0;
+
     while (*next_char != 0)
     {
-        Texture* tex = &characters[font][*next_char];
-        curr_id = sprite_create(tex, next_x, y, 1, w, h, r, g, b, a);
-        if (start_id == 0)
-            start_id = curr_id;
+        if (*next_char == '\n')
+        {
+            ++next_char;
+            ++row;
+        }
+        char* next_char_in_row = next_char;
+        uint16 tallest_height = 0;
+        uint16 total_width = 0;
+        while (*next_char_in_row != 0 && *next_char_in_row != '\n')
+        {
+            total_width += characters[font][*next_char_in_row].width;
+            tallest_height = SDL_max(tallest_height, characters[font][*next_char_in_row].height);
+            ++next_char_in_row;
+        }
 
-        next_x += tex->width;
-        ++next_char;
+        if (align == Align_Center)
+            next_x = x - (total_width / 2);
+        else if (align == Align_Right)
+            next_x = x - total_width;
+        else
+            next_x = x;
+
+        if (row > 0)
+            next_y -= (tallest_height + 1);
+
+        while (*next_char != 0 && *next_char != '\n')
+        {
+            Texture* tex = &characters[font][*next_char];
+            curr_id = sprite_create(tex, next_x, next_y, 1, w, h, r, g, b, a);
+            if (start_id == 0)
+                start_id = curr_id;
+
+            next_x += tex->width;
+            ++next_char;
+        }
     }
 
     if (curr_id != 0)

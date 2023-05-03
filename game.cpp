@@ -119,7 +119,7 @@ void setup_panel()
 
     for (PieceType p = Piece_King; p > Piece_None; p = (PieceType)(p - 1))
     {
-        piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p - 1][true], piece_panel_x, next_panel_y, Layer_PlacedPiece) };
+        // piece_buttons[p - 1] = { { p, true }, sprite_create(&piece_textures[p - 1][true], piece_panel_x, next_panel_y, Layer_PlacedPiece) };
         clicky_squares[p - 1] = ClickySquare { piece_panel_x, next_panel_y, 14, 14, Action::Action_GrabPiece, true, &piece_buttons[p - 1] };
         next_panel_y = next_panel_y - 2 - 14;
     }
@@ -143,7 +143,7 @@ void setup_panel()
     {
         SDL_snprintf(piece_buttons[p - 1].count_text, 3, "x%d", piece_buttons[p - 1].count[player_white]);
         short y = clicky_squares[p - 1].y;
-        piece_buttons[p - 1].count_text_id = text_create(piece_buttons[p - 1].count_text, text_x, y);
+        // piece_buttons[p - 1].count_text_id = text_create(piece_buttons[p - 1].count_text, text_x, y);
     }
 }
 
@@ -1528,7 +1528,7 @@ void game_init()
 {
     grid_pos_x = 160 - 112 - 8;
     grid_pos_y = 160 - 112 - 8;
-    sprite_create(&board_tex, grid_pos_x, grid_pos_y, Layer_Board);
+    // sprite_create(&board_tex, grid_pos_x, grid_pos_y, Layer_Board);
 
     setup_panel();
 
@@ -1548,15 +1548,17 @@ void game_init()
     held_sprite = 0;
     preview_sprite = 0;
 
-    // title_id = text_create("Backwards", 15, 80, Align_Left, Font_Title, -1.0f);
+    title_id = text_create("Backwards\nChess", 15, 80, Align_Left, Font_Title, -1.0f);
 }
 
 float title_char_w = 1.0f;
 float title_spin_dir = -1.0f;
 
-const float animate_start_time = 0.5f;
+float animate_start_time = 1000000000.0f;
 const float next_char_delay = 0.05f;
 const float title_spin_duration = 0.6f;
+
+bool animate = false;
 
 void game_update()
 {
@@ -1603,17 +1605,22 @@ void game_update()
         new_turn = false;
     }
 
-    // float time_s = SDL_GetTicks64() / 1000.0f;
-    // float time_elapsed = time_s - animate_start_time;
-    // for (uint16 i = 0; i < 9; ++i)
-    // {
-    //     float time_since_char_start = time_elapsed - i * next_char_delay;
-    //     float a = SDL_clamp(time_since_char_start / title_spin_duration, 0.0f, 1.0f);
-    //     // float v = a < 0.5f ? 4.0f * a * a * a : 1.0f - (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) / 2.0f;
-    //     float v = a < 0.5f ? 2.0f * a * a : 1.0f - (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) / 2.0f;
-    //     float w = v * 2.0f - 1.0f;
-    //     text_set_char_scale(title_id, i, w, 1.0f);
-    // }
+    if (g_space_down)
+    {
+        animate_start_time = SDL_GetTicks64() / 1000.0f;
+    }
+
+    float time_s = SDL_GetTicks64() / 1000.0f;
+    float time_elapsed = time_s - animate_start_time;
+    for (uint16 i = 0; i < 14; ++i)
+    {
+        float time_since_char_start = time_elapsed - i * next_char_delay;
+        float a = SDL_clamp(time_since_char_start / title_spin_duration, 0.0f, 1.0f);
+        // float v = a < 0.5f ? 4.0f * a * a * a : 1.0f - (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) / 2.0f;
+        float v = a < 0.5f ? 2.0f * a * a : 1.0f - (-2.0f * a + 2.0f) * (-2.0f * a + 2.0f) / 2.0f;
+        float w = v * 2.0f - 1.0f;
+        text_set_char_scale(title_id, i, w, 1.0f);
+    }
 
     bool hovering = false;
     bool show_preview = false;

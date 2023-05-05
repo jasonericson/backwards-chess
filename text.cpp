@@ -43,21 +43,21 @@ void text_init()
     texts.count = 0;
 
     // title font
-    characters[Font_Title][' '] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 63, 64, 63, 64 };
-    characters[Font_Title]['B'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1),  0, 11,  0, 17 };
-    characters[Font_Title]['C'] = { MapId_FontTitle, (short)(12 * 1), (short)(17 * 1),  0, 12, 36, 53 };
-    characters[Font_Title]['a'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 12, 23,  0, 17 };
-    characters[Font_Title]['c'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 24, 35,  0, 17 };
-    characters[Font_Title]['d'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 26, 37, 18, 35 };
-    characters[Font_Title]['e'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 25, 36, 36, 53 };
-    characters[Font_Title]['h'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 13, 24, 36, 53 };
-    characters[Font_Title]['k'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 36, 47,  0, 17 };
-    characters[Font_Title]['r'] = { MapId_FontTitle, (short)(11 * 1), (short)(17 * 1), 14, 25, 18, 35 };
-    characters[Font_Title]['s'] = { MapId_FontTitle, (short)( 9 * 1), (short)(17 * 1), 38, 47, 18, 35 };
-    characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1), (short)(17 * 1),  0, 13, 18, 35 };
+    characters[Font_Title][' '] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 63, 64, 63, 64 };
+    characters[Font_Title]['B'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5),  0, 11,  0, 17 };
+    characters[Font_Title]['C'] = { MapId_FontTitle, (short)(12 * 1.5), (short)(17 * 1.5),  0, 12, 36, 53 };
+    characters[Font_Title]['a'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 12, 23,  0, 17 };
+    characters[Font_Title]['c'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 24, 35,  0, 17 };
+    characters[Font_Title]['d'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 26, 37, 18, 35 };
+    characters[Font_Title]['e'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 25, 36, 36, 53 };
+    characters[Font_Title]['h'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 13, 24, 36, 53 };
+    characters[Font_Title]['k'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 36, 47,  0, 17 };
+    characters[Font_Title]['r'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 14, 25, 18, 35 };
+    characters[Font_Title]['s'] = { MapId_FontTitle, (short)( 9 * 1.5), (short)(17 * 1.5), 38, 47, 18, 35 };
+    characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1.5), (short)(17 * 1.5),  0, 13, 18, 35 };
 }
 
-uint32 text_create(char* text, short x, short y, TextAlign align, Font font, float w, float h, float r, float g, float b, float a)
+uint32 text_create(char* text, short x, short y, TextSettings settings, float w, float h, float r, float g, float b, float a)
 {
     char* next_char = text;
     uint16 next_x;
@@ -80,29 +80,29 @@ uint32 text_create(char* text, short x, short y, TextAlign align, Font font, flo
         uint16 total_width = 0;
         while (*next_char_in_row != 0 && *next_char_in_row != '\n')
         {
-            total_width += characters[font][*next_char_in_row].width;
-            tallest_height = SDL_max(tallest_height, characters[font][*next_char_in_row].height);
+            total_width += characters[settings.font][*next_char_in_row].width;
+            tallest_height = SDL_max(tallest_height, characters[settings.font][*next_char_in_row].height);
             ++next_char_in_row;
         }
 
-        if (align == Align_Center)
+        if (settings.align == Align_Center)
             next_x = x - (total_width / 2);
-        else if (align == Align_Right)
+        else if (settings.align == Align_Right)
             next_x = x - total_width;
         else
             next_x = x;
 
         if (row > 0)
-            next_y -= (tallest_height + 1);
+            next_y -= (tallest_height + settings.line_spacing);
 
         while (*next_char != 0 && *next_char != '\n')
         {
-            Texture* tex = &characters[font][*next_char];
+            Texture* tex = &characters[settings.font][*next_char];
             curr_id = sprite_create(tex, next_x, next_y, 1, w, h, r, g, b, a);
             if (start_id == 0)
                 start_id = curr_id;
 
-            next_x += tex->width;
+            next_x += tex->width + settings.kerning;
             ++next_char;
         }
     }
@@ -111,7 +111,7 @@ uint32 text_create(char* text, short x, short y, TextAlign align, Font font, flo
     {
         end_id = curr_id;
         uint32 this_id = text_next_id;
-        texts.data[texts.count] = { this_id, start_id, end_id, x, y, align, r, g, b, a };
+        texts.data[texts.count] = { this_id, start_id, end_id, x, y, settings.align, r, g, b, a };
         ++texts.count;
         ++text_next_id;
 
@@ -123,9 +123,9 @@ uint32 text_create(char* text, short x, short y, TextAlign align, Font font, flo
     }
 }
 
-uint32 text_create(const char* text, short x, short y, TextAlign align, Font font, float w, float h, float r, float g, float b, float a)
+uint32 text_create(const char* text, short x, short y, TextSettings settings, float w, float h, float r, float g, float b, float a)
 {
-    return text_create((char*)text, x, y, align, font, w, h, r, g, b, a);
+    return text_create((char*)text, x, y, settings, w, h, r, g, b, a);
 }
 
 void text_delete(uint32 id)
@@ -270,4 +270,30 @@ void text_set_char_scale(uint32 id, uint16 char_index, float w, float h)
             break;
         }
     }
+}
+
+void text_set_pos(uint32 id, int16 x, int16 y)
+{   
+    for (uint16 i = 0; i < texts.count; ++i)
+    {
+        if (texts.data[i].id == id)
+        {
+            TextInstance* t = &texts.data[i];
+
+            for (uint16 sprite_id = t->sprite_id_start; sprite_id <= t->sprite_id_end; ++sprite_id)
+            {
+                Sprite* sprite = sprite_find(sprite_id);
+                int16 offset_x = sprite->x - t->x;
+                int16 offset_y = sprite->y - t->y;
+                sprite->x = x + offset_x;
+                sprite->y = y + offset_y;
+            }
+
+            t->x = x;
+            t->y = y;
+
+            break;
+        }
+    }
+
 }

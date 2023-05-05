@@ -3,6 +3,7 @@
 #include "sprite.h"
 #include "text.h"
 
+#include "imgui.h"
 #include <SDL.h>
 
 Texture board_tex = Texture{ MapId_Pieces, 112, 112, 32, 40, 24, 32 };
@@ -1002,13 +1003,15 @@ void check_for_check(bool white)
 
     bool now_in_check = is_king_in_danger(white, grid);
     bool check_escapable = any_safe_moves(white);
+    TextSettings text_settings;
+    text_settings.align = Align_Center;
     if (now_in_check && !check_escapable)
     {
         if (*check_state != CS_CheckMate)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Checkmate!", message_x, 20, Align_Center, Font_Default, 1.0f, 1.0f, r, g, b);
+            *message_id = text_create("Checkmate!", message_x, 20, text_settings, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_CheckMate;
         }
@@ -1019,7 +1022,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Check", message_x, 20, Align_Center, Font_Default, 1.0f, 1.0f, r, g, b);
+            *message_id = text_create("Check", message_x, 20, text_settings, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_Check;
         }
@@ -1030,7 +1033,7 @@ void check_for_check(bool white)
         {
             if (*message_id != 0)
                 text_delete(*message_id);
-            *message_id = text_create("Stalemate", message_x, 20, Align_Center, Font_Default, 1.0f, 1.0f, r, g, b);
+            *message_id = text_create("Stalemate", message_x, 20, text_settings, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_StaleMate;
         }
@@ -1523,6 +1526,8 @@ uint16 last_hover_col = 9;
 uint16 last_hover_row = 9;
 
 uint32 title_id;
+uint32 top_bar_id;
+uint32 bot_bar_id;
 
 void game_init()
 {
@@ -1548,7 +1553,14 @@ void game_init()
     held_sprite = 0;
     preview_sprite = 0;
 
-    title_id = text_create("Backwards\nChess", 15, 80, Align_Left, Font_Title, -1.0f);
+    TextSettings text_settings;
+    text_settings.font = Font_Title;
+    text_settings.line_spacing = 10;
+    text_settings.kerning = 1;
+    title_id = text_create("Backwards\nChess", 4, 102, text_settings, -1.0f);
+
+    top_bar_id = sprite_create(&square_tex, 73, 150, Layer_PlacedPiece, 12.0f, 3.0f, 0.0f, 0.0f, 0.0f);
+    bot_bar_id = sprite_create(&square_tex, 73, -2, Layer_PlacedPiece, 12.0f, 3.0f, 0.0f, 0.0f, 0.0f);
 }
 
 float title_char_w = 1.0f;
@@ -1559,6 +1571,7 @@ const float next_char_delay = 0.05f;
 const float title_spin_duration = 0.6f;
 
 bool animate = false;
+const int16 s16_one = 1;
 
 void game_update()
 {

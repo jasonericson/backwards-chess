@@ -5,6 +5,9 @@
 #include "sprite.h"
 #include "text.h"
 
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
 #include <SDL.h>
 #include <stdlib.h>
 #include <time.h>
@@ -59,6 +62,7 @@ int main(int argc, char* argv[])
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
             {
                 quit = true;
@@ -83,6 +87,10 @@ int main(int argc, char* argv[])
             }
         }
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
         game_update();
         render_update();
 
@@ -92,6 +100,9 @@ int main(int argc, char* argv[])
     }
 
     game_cleanup();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
     render_cleanup();
 
     SDL_FreeCursor(hand_cursor);

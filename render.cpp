@@ -2,6 +2,9 @@
 
 #include "sprite.h"
 
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
 #include <GL/glew.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
@@ -24,6 +27,12 @@ struct SpriteMap
 SpriteMap maps[NUM_MAPS];
 
 SDL_Window* window;
+
+#ifdef EMSCRIPTEN
+const char* glsl_version = "#version 300 es";
+#else
+const char* glsl_version = "#version 330";
+#endif
 
 const char* vertexShader =
 #ifdef EMSCRIPTEN
@@ -137,6 +146,15 @@ void render_init()
 
     glewInit();
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplSDL2_InitForOpenGL(window, context);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
@@ -201,6 +219,7 @@ void render_init()
 
 void render_update()
 {
+    ImGui::Render();
     glViewport(0, 0, 640, 640);
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -286,6 +305,7 @@ void render_update()
         glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_array->count);
     }
 
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window);
 }
 

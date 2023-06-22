@@ -19,4 +19,12 @@ extern int g_mouse_raw_y;
 
 extern bool g_space_down;
 
+enum SpriteLayer
+{
+    Layer_Board = 0,
+    Layer_SquareHighlight = 1,
+    Layer_PlacedPiece = 2,
+    Layer_HeldPiece = 3,
+};
+
 void cursor_set(bool hand);

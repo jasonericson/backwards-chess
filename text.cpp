@@ -98,7 +98,7 @@ uint32 text_create(char* text, short x, short y, TextSettings settings, float w,
         while (*next_char != 0 && *next_char != '\n')
         {
             Texture* tex = &characters[settings.font][*next_char];
-            curr_id = sprite_create(tex, next_x, next_y, 1, w, h, r, g, b, a);
+            curr_id = sprite_create(tex, next_x, next_y, SpriteLayer::Layer_PlacedPiece, w, h, r, g, b, a);
             if (start_id == 0)
                 start_id = curr_id;
 
@@ -198,7 +198,7 @@ void text_change(uint32 id, char* text)
             curr_id = 0;
             while (*next_char != 0)
             {
-                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, 1, 1.0f, 1.0f, t->r, t->g, t->b, t->a);
+                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, SpriteLayer::Layer_PlacedPiece, 1.0f, 1.0f, t->r, t->g, t->b, t->a);
                 if (t->sprite_id_start == 0)
                     t->sprite_id_start = curr_id;
 

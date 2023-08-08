@@ -41,27 +41,22 @@ const int16 s16_one = 1;
 
 void title_update()
 {
-    if (g_space_down)
-    {
-        animate_start_time = SDL_GetTicks64() / 1000.0f;
-    }
-
     float time_s = SDL_GetTicks64() / 1000.0f;
 
-    if (time_s < fade_in_time)
-    {
-        float a = 1.0f - (time_s / fade_in_time);
-        sprite_set_color(fade_id, 0.0f, 0.0f, 0.0f, a);
-    }
-    else if (fade_id != 0)
-    {
-        sprite_delete(fade_id);
-        fade_id = 0;
-    }
+    // if (time_s < fade_in_time)
+    // {
+    //     float a = 1.0f - (time_s / fade_in_time);
+    //     sprite_set_color(fade_id, 0.0f, 0.0f, 0.0f, a);
+    // }
+    // else if (fade_id != 0)
+    // {
+    //     sprite_delete(fade_id);
+    //     fade_id = 0;
+    // }
 
     if (animate_title)
     {
-        if (time_s > animate_start_time && time_s < total_title_anim_time)
+        if (time_s > animate_start_time && time_s - animate_start_time < total_title_anim_time)
         {
             float time_elapsed = time_s - animate_start_time;
             for (uint16 i = 0; i < 14; ++i)

@@ -224,6 +224,23 @@ void render_update()
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    for (uint16 layer = 0; layer < SpriteLayer::Layer_MAX; ++layer)
+    {
+        for (uint16 map_id = 0; map_id < NUM_MAPS; ++map_id)
+        {
+            SpriteMap* map = maps + map_id;
+            SpriteArray* sprite_array = &sprites[map_id];
+            for (int j = 0; j < sprite_array->count; ++j)
+            {
+                Sprite* sprite = sprite_array->data + j;
+                if (sprite->depth_layer < layer)
+                    continue;
+                else if (sprite->depth_layer > layer)
+                    break;
+            }
+        }
+    }
+
     for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
     {
         SpriteMap* map = maps + map_id;

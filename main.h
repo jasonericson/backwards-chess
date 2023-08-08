@@ -25,6 +25,7 @@ enum SpriteLayer
     Layer_SquareHighlight = 1,
     Layer_PlacedPiece = 2,
     Layer_HeldPiece = 3,
+    Layer_MAX,
 };
 
 void cursor_set(bool hand);

@@ -5,6 +5,12 @@ find_package(OpenGL REQUIRED)
 
 add_executable(BackwardsChess "main.cpp" "render.cpp" "sprite.cpp" "title.cpp" "game.cpp" "text.cpp" "imgui_demo.cpp" "imgui_draw.cpp" "imgui_tables.cpp" "imgui_widgets.cpp" "imgui.cpp" "imgui_impl_opengl3.cpp" "imgui_impl_sdl2.cpp")
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif ()
+
 if (EMSCRIPTEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s ASSERTIONS=1 -s WASM=1 -s USE_WEBGL2=1 -s ASYNCIFY --shell-file ${PROJECT_SOURCE_DIR}/shell.html --preload-file ${PROJECT_SOURCE_DIR}/build/pieces.png --preload-file ${PROJECT_SOURCE_DIR}/build/font.png")
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
@@ -15,10 +21,6 @@ else ()
     add_subdirectory(lib/glew EXCLUDE_FROM_ALL)
     add_subdirectory(lib/SDL)
     target_link_libraries(BackwardsChess PRIVATE libglew_static)
-endif ()
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif ()
 
 target_link_libraries(BackwardsChess

@@ -9,6 +9,7 @@ struct TextInstance
 {
     uint32 id, sprite_id_start, sprite_id_end;
     int16 x, y;
+    SpriteLayer depth_layer;
     TextAlign align;
     float r, g, b, a;
 };
@@ -57,7 +58,7 @@ void text_init()
     characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1.5), (short)(17 * 1.5),  0, 13, 18, 35 };
 }
 
-uint32 text_create(char* text, short x, short y, TextSettings settings, float w, float h, float r, float g, float b, float a)
+uint32 text_create(char* text, short x, short y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
 {
     char* next_char = text;
     uint16 next_x;
@@ -98,7 +99,7 @@ uint32 text_create(char* text, short x, short y, TextSettings settings, float w,
         while (*next_char != 0 && *next_char != '\n')
         {
             Texture* tex = &characters[settings.font][*next_char];
-            curr_id = sprite_create(tex, next_x, next_y, 1, w, h, r, g, b, a);
+            curr_id = sprite_create(tex, next_x, next_y, depth_layer, w, h, r, g, b, a);
             if (start_id == 0)
                 start_id = curr_id;
 
@@ -111,7 +112,7 @@ uint32 text_create(char* text, short x, short y, TextSettings settings, float w,
     {
         end_id = curr_id;
         uint32 this_id = text_next_id;
-        texts.data[texts.count] = { this_id, start_id, end_id, x, y, settings.align, r, g, b, a };
+        texts.data[texts.count] = { this_id, start_id, end_id, x, y, depth_layer, settings.align, r, g, b, a };
         ++texts.count;
         ++text_next_id;
 
@@ -123,9 +124,9 @@ uint32 text_create(char* text, short x, short y, TextSettings settings, float w,
     }
 }
 
-uint32 text_create(const char* text, short x, short y, TextSettings settings, float w, float h, float r, float g, float b, float a)
+uint32 text_create(const char* text, short x, short y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
 {
-    return text_create((char*)text, x, y, settings, w, h, r, g, b, a);
+    return text_create((char*)text, x, y, depth_layer, settings, w, h, r, g, b, a);
 }
 
 void text_delete(uint32 id)
@@ -198,7 +199,7 @@ void text_change(uint32 id, char* text)
             curr_id = 0;
             while (*next_char != 0)
             {
-                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, 1, 1.0f, 1.0f, t->r, t->g, t->b, t->a);
+                curr_id = sprite_create(&characters[Font_Default][*next_char], next_x, t->y, t->depth_layer, 1.0f, 1.0f, t->r, t->g, t->b, t->a);
                 if (t->sprite_id_start == 0)
                     t->sprite_id_start = curr_id;
 

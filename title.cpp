@@ -16,7 +16,7 @@ void title_init()
     text_settings.font = Font_Title;
     text_settings.line_spacing = 10;
     text_settings.kerning = 1;
-    title_id = text_create("Backwards\nChess", 4, 102, text_settings, -1.0f);
+    title_id = text_create("Backwards\nChess", 4, 102, Layer_Board, text_settings, -1.0f);
 
     top_bar_id = sprite_create(&square_tex2, 73, 150, Layer_PlacedPiece, 12.0f, 3.0f, 0.0f, 0.0f, 0.0f);
     bot_bar_id = sprite_create(&square_tex2, 73, -2, Layer_PlacedPiece, 12.0f, 3.0f, 0.0f, 0.0f, 0.0f);

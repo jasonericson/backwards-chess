@@ -18,13 +18,14 @@ GLint vertexLoc, uvLoc, tintLoc;
 struct SpriteMap
 {
     GLuint vao, vbo, ubo, tbo, tex_id;
-    int16 vertices[2 * 6 * SPRITE_MAX];
-    float uvs[2 * 6 * SPRITE_MAX];
-    float tints[4 * 6 * SPRITE_MAX];
     uint16 width, height;
 };
 
 SpriteMap maps[NUM_MAPS];
+
+int16 vertices[2 * 6 * SPRITE_MAX];
+float uvs[2 * 6 * SPRITE_MAX];
+float tints[4 * 6 * SPRITE_MAX];
 
 SDL_Window* window;
 
@@ -195,15 +196,15 @@ void render_init()
         glBindVertexArray(map->vao);
 
         glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(map->vertices), map->vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
         glVertexAttribPointer(vertexLoc, 2, GL_SHORT, GL_FALSE, 2 * sizeof(int16), 0);
 
         glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(map->uvs), map->uvs, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_DYNAMIC_DRAW);
         glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_TRUE, 2 * sizeof(GLfloat), 0);
 
         glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(map->tints), map->tints, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(tints), tints, GL_DYNAMIC_DRAW);
         glVertexAttribPointer(tintLoc, 4, GL_FLOAT, GL_TRUE, 4 * sizeof(GLfloat), 0);
 
         glEnableVertexAttribArray(vertexLoc);
@@ -224,14 +225,37 @@ void render_update()
     glClearColor(0.55859375f, 0.26953125f, 0.15625f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int map_id = 0; map_id < NUM_MAPS; ++map_id)
+    if (sprites.count > 0)
     {
-        SpriteMap* map = maps + map_id;
-        SpriteArray* sprite_array = &sprites[map_id];
-        for (int j = 0; j < sprite_array->count; ++j)
+        SpriteMapId last_map_id = sprites.data[0].tex->map_id;
+        SpriteMap* map = maps + last_map_id;
+
+        uint32 sprite_batch_count = 0;
+        for (int i = 0; i < sprites.count; ++i)
         {
-            int offset = 2 * 6 * j;
-            Sprite* sprite = sprite_array->data + j;
+            Sprite* sprite = sprites.data + i;
+            if (sprite->tex->map_id != last_map_id)
+            {
+                if (sprite_batch_count > 0)
+                {
+                    glBindTexture(GL_TEXTURE_2D, map->tex_id);
+
+                    glBindVertexArray(map->vao);
+                    glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_batch_count * 2 * 6, vertices);
+                    glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_batch_count * 2 * 6, uvs);
+                    glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_batch_count * 4 * 6, tints);
+                    glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_batch_count);
+
+                    sprite_batch_count = 0;
+                }
+
+                map = maps + sprite->tex->map_id;
+            }
+
+            int offset = 2 * 6 * sprite_batch_count;
 
             int16 x = sprite->smooth_pos ? sprite->x : sprite->x * 4;
             int16 y = sprite->smooth_pos ? sprite->y : sprite->y * 4;
@@ -242,67 +266,73 @@ void render_update()
             int16 bot   = y + sprite->tex->height * 4 * 0.5f * (1.0f + sprite->h);
 
             // top right
-            map->vertices[offset + 0] = right;
-            map->vertices[offset + 1] = top;
+            vertices[offset + 0] = right;
+            vertices[offset + 1] = top;
 
             // bottom right
-            map->vertices[offset + 2] = right;
-            map->vertices[offset + 3] = bot;
+            vertices[offset + 2] = right;
+            vertices[offset + 3] = bot;
 
             // top left
-            map->vertices[offset + 4] = left;
-            map->vertices[offset + 5] = top;
+            vertices[offset + 4] = left;
+            vertices[offset + 5] = top;
 
             // bottom right
-            map->vertices[offset + 6] = right;
-            map->vertices[offset + 7] = bot;
+            vertices[offset + 6] = right;
+            vertices[offset + 7] = bot;
 
             // bottom left
-            map->vertices[offset + 8] = left;
-            map->vertices[offset + 9] = bot;
+            vertices[offset + 8] = left;
+            vertices[offset + 9] = bot;
 
             // top left
-            map->vertices[offset + 10] = left;
-            map->vertices[offset + 11] = top;
+            vertices[offset + 10] = left;
+            vertices[offset + 11] = top;
 
-            map->uvs[offset + 0] = sprite->tex->u2 / (float)map->width;
-            map->uvs[offset + 1] = sprite->tex->v2 / (float)map->height;
+            uvs[offset + 0] = sprite->tex->u2 / (float)map->width;
+            uvs[offset + 1] = sprite->tex->v2 / (float)map->height;
 
-            map->uvs[offset + 2] = sprite->tex->u2 / (float)map->width;
-            map->uvs[offset + 3] = sprite->tex->v1 / (float)map->height;
+            uvs[offset + 2] = sprite->tex->u2 / (float)map->width;
+            uvs[offset + 3] = sprite->tex->v1 / (float)map->height;
 
-            map->uvs[offset + 4] = sprite->tex->u1 / (float)map->width;
-            map->uvs[offset + 5] = sprite->tex->v2 / (float)map->height;
+            uvs[offset + 4] = sprite->tex->u1 / (float)map->width;
+            uvs[offset + 5] = sprite->tex->v2 / (float)map->height;
 
-            map->uvs[offset + 6] = sprite->tex->u2 / (float)map->width;
-            map->uvs[offset + 7] = sprite->tex->v1 / (float)map->height;
+            uvs[offset + 6] = sprite->tex->u2 / (float)map->width;
+            uvs[offset + 7] = sprite->tex->v1 / (float)map->height;
 
-            map->uvs[offset + 8] = sprite->tex->u1 / (float)map->width;
-            map->uvs[offset + 9] = sprite->tex->v1 / (float)map->height;
+            uvs[offset + 8] = sprite->tex->u1 / (float)map->width;
+            uvs[offset + 9] = sprite->tex->v1 / (float)map->height;
 
-            map->uvs[offset + 10] = sprite->tex->u1 / (float)map->width;
-            map->uvs[offset + 11] = sprite->tex->v2 / (float)map->height;
+            uvs[offset + 10] = sprite->tex->u1 / (float)map->width;
+            uvs[offset + 11] = sprite->tex->v2 / (float)map->height;
 
-            for (int i = 0; i < 6; ++i)
+            for (int j = 0; j < 6; ++j)
             {
-                int sub_offset = 4 * 6 * j + i * 4;
-                map->tints[sub_offset + 0] = sprite->r;
-                map->tints[sub_offset + 1] = sprite->g;
-                map->tints[sub_offset + 2] = sprite->b;
-                map->tints[sub_offset + 3] = sprite->a;
+                int sub_offset = 4 * 6 * sprite_batch_count + j * 4;
+                tints[sub_offset + 0] = sprite->r;
+                tints[sub_offset + 1] = sprite->g;
+                tints[sub_offset + 2] = sprite->b;
+                tints[sub_offset + 3] = sprite->a;
             }
+
+            last_map_id = sprite->tex->map_id;
+            ++sprite_batch_count;
         }
 
-        glBindTexture(GL_TEXTURE_2D, map->tex_id);
+        if (sprite_batch_count > 0)
+        {
+            glBindTexture(GL_TEXTURE_2D, map->tex_id);
 
-        glBindVertexArray(map->vao);
-        glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_array->count * 2 * 6, map->vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_array->count * 2 * 6, map->uvs);
-        glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_array->count * 4 * 6, map->tints);
-        glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_array->count);
+            glBindVertexArray(map->vao);
+            glBindBuffer(GL_ARRAY_BUFFER, map->vbo);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(int16) * sprite_batch_count * 2 * 6, vertices);
+            glBindBuffer(GL_ARRAY_BUFFER, map->ubo);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_batch_count * 2 * 6, uvs);
+            glBindBuffer(GL_ARRAY_BUFFER, map->tbo);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * sprite_batch_count * 4 * 6, tints);
+            glDrawArrays(GL_TRIANGLES, 0, 6 * sprite_batch_count);
+        }
     }
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -40,7 +40,7 @@ struct SpriteArray
 
 const uint16 NUM_MAPS = 3;
 
-extern SpriteArray sprites[NUM_MAPS];
+extern SpriteArray sprites;
 extern const char* spritemap_filenames[NUM_MAPS];
 
 void sprite_init();

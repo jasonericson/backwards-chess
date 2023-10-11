@@ -2,6 +2,24 @@
     "files.associations": {
         "__tuple": "cpp",
         "__availability": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "__bit_reference": "cpp",
+        "__mutex_base": "cpp",
+        "__threading_support": "cpp",
+        "algorithm": "cpp",
+        "bit": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "span": "cpp",
+        "type_traits": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "valarray": "cpp",
+        "__split_buffer": "cpp",
+        "memory": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
     }
 }

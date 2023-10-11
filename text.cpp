@@ -129,14 +129,14 @@ uint32 text_create(char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSe
     }
 }
 
-uint32 text_create(const char* text, short x, short y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
+uint32 text_create(const char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
 {
     return text_create((char*)text, x, y, depth_layer, settings, w, h, r, g, b, a);
 }
 
 void text_delete(uint32 id)
 {
-    for (int i = 0; i < texts.count; ++i)
+    for (uint16 i = 0; i < texts.count; ++i)
     {
         if (texts.data[i].id == id)
         {
@@ -175,11 +175,11 @@ void text_change(uint32 id, char* text)
             }
 
             char* next_char = text;
-            short next_x = t->x;
+            int16 next_x = t->x;
 
             if (t->align == Align_Center)
             {
-                int num_chars = 0;
+                int16 num_chars = 0;
                 while (*next_char != 0)
                 {
                     ++num_chars;
@@ -191,7 +191,7 @@ void text_change(uint32 id, char* text)
             }
             else if (t->align == Align_Right)
             {
-                int num_chars = 0;
+                int16 num_chars = 0;
                 while (*next_char != 0)
                 {
                     ++num_chars;

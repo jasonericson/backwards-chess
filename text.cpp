@@ -18,7 +18,7 @@ uint32 text_next_id;
 struct TextArray
 {
     TextInstance data[TEXT_MAX];
-    int count;
+    uint16 count;
 } texts;
 
 Texture characters[NUM_FONTS][256];
@@ -29,7 +29,7 @@ void text_init()
     const char* order = "~1234567890-+!@#$%^&*()_={}[]|\\:;\"'<,>.?/ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     uint16 col = 0;
     uint16 row = 0;
-    for (int i = 0; i < 93; ++i)
+    for (uint16 i = 0; i < 93; ++i)
     {
         characters[Font_Default][order[i]] = { MapId_Font, 8, 8, (uint16)(col * 8), (uint16)((col + 1) * 8), (uint16)(row * 8), (uint16)((row + 1) * 8) };
         col += 1;
@@ -44,21 +44,21 @@ void text_init()
     texts.count = 0;
 
     // title font
-    characters[Font_Title][' '] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 63, 64, 63, 64 };
-    characters[Font_Title]['B'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5),  0, 11,  0, 17 };
-    characters[Font_Title]['C'] = { MapId_FontTitle, (short)(12 * 1.5), (short)(17 * 1.5),  0, 12, 36, 53 };
-    characters[Font_Title]['a'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 12, 23,  0, 17 };
-    characters[Font_Title]['c'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 24, 35,  0, 17 };
-    characters[Font_Title]['d'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 26, 37, 18, 35 };
-    characters[Font_Title]['e'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 25, 36, 36, 53 };
-    characters[Font_Title]['h'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 13, 24, 36, 53 };
-    characters[Font_Title]['k'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 36, 47,  0, 17 };
-    characters[Font_Title]['r'] = { MapId_FontTitle, (short)(11 * 1.5), (short)(17 * 1.5), 14, 25, 18, 35 };
-    characters[Font_Title]['s'] = { MapId_FontTitle, (short)( 9 * 1.5), (short)(17 * 1.5), 38, 47, 18, 35 };
-    characters[Font_Title]['w'] = { MapId_FontTitle, (short)(13 * 1.5), (short)(17 * 1.5),  0, 13, 18, 35 };
+    characters[Font_Title][' '] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 63, 64, 63, 64 };
+    characters[Font_Title]['B'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5),  0, 11,  0, 17 };
+    characters[Font_Title]['C'] = { MapId_FontTitle, (int16)(12 * 1.5), (int16)(17 * 1.5),  0, 12, 36, 53 };
+    characters[Font_Title]['a'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 12, 23,  0, 17 };
+    characters[Font_Title]['c'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 24, 35,  0, 17 };
+    characters[Font_Title]['d'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 26, 37, 18, 35 };
+    characters[Font_Title]['e'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 25, 36, 36, 53 };
+    characters[Font_Title]['h'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 13, 24, 36, 53 };
+    characters[Font_Title]['k'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 36, 47,  0, 17 };
+    characters[Font_Title]['r'] = { MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 14, 25, 18, 35 };
+    characters[Font_Title]['s'] = { MapId_FontTitle, (int16)( 9 * 1.5), (int16)(17 * 1.5), 38, 47, 18, 35 };
+    characters[Font_Title]['w'] = { MapId_FontTitle, (int16)(13 * 1.5), (int16)(17 * 1.5),  0, 13, 18, 35 };
 }
 
-uint32 text_create(char* text, short x, short y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
+uint32 text_create(char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
 {
     char* next_char = text;
     uint16 next_x;
@@ -73,12 +73,14 @@ uint32 text_create(char* text, short x, short y, SpriteLayer depth_layer, TextSe
     {
         if (*next_char == '\n')
         {
+            // start another row when we hit a newline
             ++next_char;
             ++row;
         }
         char* next_char_in_row = next_char;
         uint16 tallest_height = 0;
         uint16 total_width = 0;
+        // walk through current row and find total width (for center or right align) and tallest height (for y pos)
         while (*next_char_in_row != 0 && *next_char_in_row != '\n')
         {
             total_width += characters[settings.font][*next_char_in_row].width;
@@ -86,6 +88,7 @@ uint32 text_create(char* text, short x, short y, SpriteLayer depth_layer, TextSe
             ++next_char_in_row;
         }
 
+        // set this row's x position based on alignment
         if (settings.align == Align_Center)
             next_x = x - (total_width / 2);
         else if (settings.align == Align_Right)
@@ -93,9 +96,11 @@ uint32 text_create(char* text, short x, short y, SpriteLayer depth_layer, TextSe
         else
             next_x = x;
 
+        // set this row's y position
         if (row > 0)
             next_y -= (tallest_height + settings.line_spacing);
 
+        // create a sprite for each letter of this row
         while (*next_char != 0 && *next_char != '\n')
         {
             Texture* tex = &characters[settings.font][*next_char];
@@ -135,6 +140,7 @@ void text_delete(uint32 id)
     {
         if (texts.data[i].id == id)
         {
+            // delete sprites
             uint32 curr_id = texts.data[i].sprite_id_start;
             while (curr_id <= texts.data[i].sprite_id_end)
             {
@@ -142,6 +148,7 @@ void text_delete(uint32 id)
                 ++curr_id;
             }
 
+            // delete text instance
             --texts.count;
             texts.data[i] = texts.data[texts.count];
 
@@ -150,6 +157,7 @@ void text_delete(uint32 id)
     }
 }
 
+// @TODO: update for variable width fonts (maybe just reuse text_create?)
 void text_change(uint32 id, char* text)
 {
     for (uint16 i = 0; i < texts.count; ++i)

@@ -6,11 +6,7 @@ uint32 next_id;
 
 void sprite_init()
 {
-    for (int i = 0; i < 2; ++i)
-    {
-        sprites.count = 0;
-    }
-
+    sprites.count = 0;
     next_id = 1;
 }
 
@@ -21,14 +17,14 @@ void debug_check_sprites()
     SpriteMapId last_map_id = (SpriteMapId)0;
     for (uint16 i = 0; i < sprites.count; ++i)
     {
-        // check that layers are in order
+        // check that layers and maps are in order
         SDL_assert(sprites.data[i].depth_layer > last_layer || (sprites.data[i].depth_layer == last_layer && sprites.data[i].tex->map_id >= last_map_id));
         last_layer = sprites.data[i].depth_layer;
         last_map_id = sprites.data[i].tex->map_id;
     }
 }
 
-uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float w, float h, float r, float g, float b, float a)
+uint32 sprite_create(Texture* tex, int16 x, int16 y, SpriteLayer depth_layer, float w, float h, float r, float g, float b, float a)
 {
     uint32 this_id = next_id;
     Sprite insert_sprite;
@@ -50,15 +46,18 @@ uint32 sprite_create(Texture* tex, short x, short y, int16 depth_layer, float w,
     uint16 i;
     for (i = 0; i < sprites.count; ++i)
     {
+        // order by depth layer first, map id second
         if (sprites.data[i].depth_layer > insert_sprite.depth_layer ||
             (sprites.data[i].tex->map_id > insert_sprite.tex->map_id && sprites.data[i].depth_layer == insert_sprite.depth_layer))
         {
+            // insert sprite here, and grab the sprite that *was* here to bubble it up to where it should go next
             Sprite swap_sprite = sprites.data[i];
             sprites.data[i] = insert_sprite;
             insert_sprite = swap_sprite;
         }
     }
 
+    // put current sprite at the end
     sprites.data[i] = insert_sprite;
 
     ++sprites.count;
@@ -76,6 +75,8 @@ void sprite_delete(uint32 id)
     if (id == 0)
         return;
 
+    SDL_assert(sprites.count > 0);
+
     int32 replace_index = -1;
     int16 layer;
     SpriteMapId map_id;
@@ -87,6 +88,7 @@ void sprite_delete(uint32 id)
         {
             if (sprites.data[i].id == id)
             {
+                // we found the sprite to delete, so we'll mark this index to pull in the next available sprite
                 replace_index = i;
                 layer = sprites.data[i].depth_layer;
                 map_id = sprites.data[i].tex->map_id;
@@ -94,9 +96,12 @@ void sprite_delete(uint32 id)
         }
         else
         {
+            // we're looking for a replacement sprite for the last deleted/replaced sprite
+            // maintaining the sprite order: first by depth layer, then by map id
             if (sprites.data[i].depth_layer > layer ||
                 (sprites.data[i].tex->map_id > map_id && sprites.data[i].depth_layer == layer))
             {
+                // take the previous sprite and drop it into the deleted/replaced sprite slot
                 if (replace_index != i - 1)
                 {
                     sprites.data[replace_index] = sprites.data[i - 1];
@@ -110,6 +115,7 @@ void sprite_delete(uint32 id)
 
     if (replace_index >= 0)
     {
+        // take the last sprite and drop it into the deleted/replaced sprite slot
         if (replace_index != i - 1)
         {
             sprites.data[replace_index] = sprites.data[i - 1];
@@ -125,7 +131,7 @@ void sprite_delete(uint32 id)
 
 Sprite* sprite_find(uint32 id)
 {
-    for (int i = 0; i < sprites.count; ++i)
+    for (uint16 i = 0; i < sprites.count; ++i)
     {
         if (sprites.data[i].id == id)
         {
@@ -136,7 +142,7 @@ Sprite* sprite_find(uint32 id)
     return nullptr;
 }
 
-void sprite_set_pos(uint32 id, short x, short y, bool smooth)
+void sprite_set_pos(uint32 id, int16 x, int16 y, bool smooth)
 {
     Sprite* sprite = sprite_find(id);
     if (sprite != nullptr)
@@ -147,7 +153,7 @@ void sprite_set_pos(uint32 id, short x, short y, bool smooth)
     }
 }
 
-void sprite_set_layer(uint32 id, int16 depth_layer)
+void sprite_set_layer(uint32 id, SpriteLayer depth_layer)
 {
     if (id == 0)
         return;
@@ -155,6 +161,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
     int32 src_index = -1;
     Sprite src_sprite;
 
+    // find the sprite (and index) by id
     for (uint16 i = 0; i < sprites.count; ++i)
     {
         if (sprites.data[i].id == id)
@@ -169,24 +176,30 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
 
     if (src_index >= 0)
     {
+        // if the new layer is higher than the old layer, start from src_index and go upwards
         if (depth_layer > src_sprite.depth_layer)
         {
             uint16 i;
             for (i = src_index + 1; i < sprites.count; ++i)
             {
+                // find a suitable place to swap, keeping sprites ordered by layer, then map id
                 if (sprites.data[i].depth_layer > src_sprite.depth_layer ||
                     (sprites.data[i].tex->map_id > src_sprite.tex->map_id && sprites.data[i].depth_layer == src_sprite.depth_layer))
                 {
+                    // if we've passed where the sprite should bubble up to, swap the src sprite with the previous sprite
                     Sprite swap = sprites.data[src_index];
                     sprites.data[src_index] = sprites.data[i - 1];
                     sprites.data[i - 1] = swap;
 
+                    // if we've reached the new layer, we're done. otherwise, we keep bubbling up.
                     if (sprites.data[i].depth_layer >= depth_layer)
                     {
                         src_index = -1;
                         break;
                     }
 
+                    // next time we swap, we'll swap to the index we just bubbled our sprite up to, but based on the
+                    // data from the sprite after
                     src_index = i - 1;
                     src_sprite = sprites.data[i];
                 }
@@ -194,29 +207,36 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
 
             if (src_index >= 0)
             {
+                // if we haven't finished bubbling the sprite up, swap it with the last sprite in the array
                 Sprite swap = sprites.data[src_index];
                 sprites.data[src_index] = sprites.data[i - 1];
                 sprites.data[i - 1] = swap;
             }
         }
+        // if the new layer is lower than the old layer, start from src_index and go down
         else if (depth_layer < src_sprite.depth_layer)
         {
-            int32 i;
+            uint16 i;
             for (i = src_index - 1; i >= 0; --i)
             {
+                // find a suitable place to swap, keeping sprites ordered by layer, then map id
                 if (sprites.data[i].depth_layer < src_sprite.depth_layer ||
                     (sprites.data[i].tex->map_id < src_sprite.tex->map_id && sprites.data[i].depth_layer == src_sprite.depth_layer))
                 {
+                    // if we've passed where the sprite should bubble down to, swap the src sprite with the previous sprite
                     Sprite swap = sprites.data[src_index];
                     sprites.data[src_index] = sprites.data[i + 1];
                     sprites.data[i + 1] = swap;
 
+                    // if we've reached the new layer, we're done. otherwise, we keep bubbling down.
                     if (sprites.data[i].depth_layer <= depth_layer)
                     {
                         src_index = -1;
                         break;
                     }
 
+                    // next time we swap, we'll swap to the index we just bubbled our sprite down to, but based on the
+                    // data from the next sprite down
                     src_index = i + 1;
                     src_sprite = sprites.data[i];
                 }
@@ -224,6 +244,7 @@ void sprite_set_layer(uint32 id, int16 depth_layer)
 
             if (src_index >= 0)
             {
+                // if we haven't finished bubbling the sprite down, swap it with the first sprite in the array
                 Sprite swap = sprites.data[src_index];
                 sprites.data[src_index] = sprites.data[i + 1];
                 sprites.data[i + 1] = swap;

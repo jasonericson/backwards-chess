@@ -169,6 +169,7 @@ void render_init()
     uvLoc = glGetAttribLocation(shaderProgramId, "_uv");
     tintLoc = glGetAttribLocation(shaderProgramId, "_tint");
 
+    // initialize the sprite maps, each with their own array/buffer objects
     for (int i = 0; i < NUM_MAPS; ++i)
     {
         SpriteMap* map = maps + i;
@@ -181,6 +182,7 @@ void render_init()
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+        // sprite texture map
         int imageWidth, imageHeight, n;
         unsigned char* image = stbi_load(spritemap_filenames[i], &imageWidth, &imageHeight, &n, 0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
@@ -227,17 +229,21 @@ void render_update()
 
     if (sprites.count > 0)
     {
+        // We'll render sprites in batches - walk through the sprite array, and whenever we get to a sprite with
+        // a different texture map, we do a draw call. The sprites are ordered by depth layer, then texture map.
+
         SpriteMapId last_map_id = sprites.data[0].tex->map_id;
         SpriteMap* map = maps + last_map_id;
 
         uint32 sprite_batch_count = 0;
-        for (int i = 0; i < sprites.count; ++i)
+        for (uint32 i = 0; i < sprites.count; ++i)
         {
             Sprite* sprite = sprites.data + i;
             if (sprite->tex->map_id != last_map_id)
             {
                 if (sprite_batch_count > 0)
                 {
+                    // We've switched texture maps and there are batched sprites to draw
                     glBindTexture(GL_TEXTURE_2D, map->tex_id);
 
                     glBindVertexArray(map->vao);
@@ -257,9 +263,11 @@ void render_update()
 
             int offset = 2 * 6 * sprite_batch_count;
 
+            // everything snaps to a 160x160 grid unless 'smooth_pos' is true
             int16 x = sprite->smooth_pos ? sprite->x : sprite->x * 4;
             int16 y = sprite->smooth_pos ? sprite->y : sprite->y * 4;
 
+            // 4 positions to define the bounding box of the sprite
             int16 right = x + sprite->tex->width  * 4 * 0.5f * (1.0f + sprite->w);
             int16 left  = x + sprite->tex->width  * 4 * 0.5f * (1.0f - sprite->w);
             int16 top   = y + sprite->tex->height * 4 * 0.5f * (1.0f - sprite->h);
@@ -289,27 +297,34 @@ void render_update()
             vertices[offset + 10] = left;
             vertices[offset + 11] = top;
 
+            // top right
             uvs[offset + 0] = sprite->tex->u2 / (float)map->width;
             uvs[offset + 1] = sprite->tex->v2 / (float)map->height;
 
+            // bottom right
             uvs[offset + 2] = sprite->tex->u2 / (float)map->width;
             uvs[offset + 3] = sprite->tex->v1 / (float)map->height;
 
+            // top left
             uvs[offset + 4] = sprite->tex->u1 / (float)map->width;
             uvs[offset + 5] = sprite->tex->v2 / (float)map->height;
 
+            // bottom right
             uvs[offset + 6] = sprite->tex->u2 / (float)map->width;
             uvs[offset + 7] = sprite->tex->v1 / (float)map->height;
 
+            // bottom left
             uvs[offset + 8] = sprite->tex->u1 / (float)map->width;
             uvs[offset + 9] = sprite->tex->v1 / (float)map->height;
 
+            // top left
             uvs[offset + 10] = sprite->tex->u1 / (float)map->width;
             uvs[offset + 11] = sprite->tex->v2 / (float)map->height;
 
-            for (int j = 0; j < 6; ++j)
+            // tints - 4 floats per vertex
+            for (uint16 j = 0; j < 6; ++j)
             {
-                int sub_offset = 4 * 6 * sprite_batch_count + j * 4;
+                uint32 sub_offset = 4 * 6 * sprite_batch_count + j * 4;
                 tints[sub_offset + 0] = sprite->r;
                 tints[sub_offset + 1] = sprite->g;
                 tints[sub_offset + 2] = sprite->b;
@@ -322,6 +337,7 @@ void render_update()
 
         if (sprite_batch_count > 0)
         {
+            // render last batch of sprites
             glBindTexture(GL_TEXTURE_2D, map->tex_id);
 
             glBindVertexArray(map->vao);

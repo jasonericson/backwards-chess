@@ -1,5 +1,7 @@
 #include "sprite.h"
 
+#include "math.h"
+
 SpriteArray sprites;
 const char* spritemap_filenames[NUM_MAPS] = { "font.png", "pieces.png", "title_font.png" };
 uint32 next_id;
@@ -24,7 +26,7 @@ void debug_check_sprites()
     }
 }
 
-uint32 sprite_create(Texture* tex, int16 x, int16 y, SpriteLayer depth_layer, float w, float h, float r, float g, float b, float a)
+uint32 sprite_create(Texture* tex, int16 x, int16 y, SpriteLayer depth_layer, float w, float h, float rot, float r, float g, float b, float a)
 {
     uint32 this_id = next_id;
     Sprite insert_sprite;
@@ -33,6 +35,7 @@ uint32 sprite_create(Texture* tex, int16 x, int16 y, SpriteLayer depth_layer, fl
     insert_sprite.y = y;
     insert_sprite.w = w;
     insert_sprite.h = h;
+    insert_sprite.rot = rot * M_PI / -180.0f;
     insert_sprite.depth_layer = depth_layer;
     insert_sprite.tex = tex;
     insert_sprite.smooth_pos = false;

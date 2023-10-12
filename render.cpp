@@ -268,34 +268,55 @@ void render_update()
             int16 y = sprite->smooth_pos ? sprite->y : sprite->y * 4;
 
             // 4 positions to define the bounding box of the sprite
-            int16 right = x + sprite->tex->width  * 4 * 0.5f * (1.0f + sprite->w);
-            int16 left  = x + sprite->tex->width  * 4 * 0.5f * (1.0f - sprite->w);
-            int16 top   = y + sprite->tex->height * 4 * 0.5f * (1.0f - sprite->h);
-            int16 bot   = y + sprite->tex->height * 4 * 0.5f * (1.0f + sprite->h);
+            int16 right = sprite->tex->width  * 4 * 0.5f * (1.0f + sprite->w);
+            int16 left  = sprite->tex->width  * 4 * 0.5f * (1.0f - sprite->w);
+            int16 top   = sprite->tex->height * 4 * 0.5f * (1.0f - sprite->h);
+            int16 bot   = sprite->tex->height * 4 * 0.5f * (1.0f + sprite->h);
+
+            float cos_right = cosf(sprite->rot) * right;
+            float sin_right = sinf(sprite->rot) * right;
+            float cos_left = cosf(sprite->rot) * left;
+            float sin_left = sinf(sprite->rot) * left;
+            float cos_top = cosf(sprite->rot) * top;
+            float sin_top = sinf(sprite->rot) * top;
+            float cos_bot = cosf(sprite->rot) * bot;
+            float sin_bot = sinf(sprite->rot) * bot;
+
+            int16 top_right_x = x + (int16)(cos_right - sin_top);
+            int16 top_right_y = y + (int16)(sin_right + cos_top);
+
+            int16 bot_right_x = x + (int16)(cos_right - sin_bot);
+            int16 bot_right_y = y + (int16)(sin_right + cos_bot);
+
+            int16 top_left_x = x + (int16)(cos_left - sin_top);
+            int16 top_left_y = y + (int16)(sin_left + cos_top);
+
+            int16 bot_left_x = x + (int16)(cos_left - sin_bot);
+            int16 bot_left_y = y + (int16)(sin_left + cos_bot);
 
             // top right
-            vertices[offset + 0] = right;
-            vertices[offset + 1] = top;
+            vertices[offset + 0] = top_right_x;
+            vertices[offset + 1] = top_right_y;
 
             // bottom right
-            vertices[offset + 2] = right;
-            vertices[offset + 3] = bot;
+            vertices[offset + 2] = bot_right_x;
+            vertices[offset + 3] = bot_right_y;
 
             // top left
-            vertices[offset + 4] = left;
-            vertices[offset + 5] = top;
+            vertices[offset + 4] = top_left_x;
+            vertices[offset + 5] = top_left_y;
 
             // bottom right
-            vertices[offset + 6] = right;
-            vertices[offset + 7] = bot;
+            vertices[offset + 6] = bot_right_x;
+            vertices[offset + 7] = bot_right_y;
 
             // bottom left
-            vertices[offset + 8] = left;
-            vertices[offset + 9] = bot;
+            vertices[offset + 8] = bot_left_x;
+            vertices[offset + 9] = bot_left_y;
 
             // top left
-            vertices[offset + 10] = left;
-            vertices[offset + 11] = top;
+            vertices[offset + 10] = top_left_x;
+            vertices[offset + 11] = top_left_y;
 
             // top right
             uvs[offset + 0] = sprite->tex->u2 / (float)map->width;

@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     sprite_init();
     text_init();
 
-    game_init();
+    title_init();
 
     hand_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        game_update();
+        title_update();
         render_update();
 
         Uint64 end = SDL_GetPerformanceCounter();
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
         SDL_Delay(floor(fmax((1000.0 / 60.0) - elapsed_ms, 0.0)));
     }
 
-    game_cleanup();
+    title_cleanup();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();

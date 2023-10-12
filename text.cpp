@@ -40,6 +40,8 @@ void text_init()
         }
     }
 
+    characters[Font_Default][' '] = { MapId_Font, 8, 8, (uint16)(7 * 8), (uint16)((7 + 1) * 8), (uint16)(13 * 8), (uint16)((13 + 1) * 8) };
+
     text_next_id = 1;
     texts.count = 0;
 

@@ -29,6 +29,15 @@ void cursor_set(bool hand)
         SDL_SetCursor(SDL_GetDefaultCursor());
 }
 
+bool do_game = false;
+
+void start_game()
+{
+    title_cleanup();
+    game_init();
+    do_game = true;
+}
+
 int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
@@ -92,7 +101,10 @@ int main(int argc, char* argv[])
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
-        title_update();
+        if (do_game)
+            game_update();
+        else
+            title_update();
         render_update();
 
         Uint64 end = SDL_GetPerformanceCounter();
@@ -100,7 +112,10 @@ int main(int argc, char* argv[])
         SDL_Delay(floor(fmax((1000.0 / 60.0) - elapsed_ms, 0.0)));
     }
 
-    title_cleanup();
+    if (do_game)
+        game_cleanup();
+    else
+        title_cleanup();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();

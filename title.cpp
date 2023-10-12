@@ -11,6 +11,7 @@ uint32 top_bar_id;
 uint32 bot_bar_id;
 uint32 fade_id;
 uint32 piece_id;
+uint32 text_id;
 
 const int16 piece_x_start = -22;
 const int16 piece_x_end = 95;
@@ -18,11 +19,11 @@ const int16 piece_y = 68;
 
 void title_init()
 {
-    TextSettings text_settings;
-    text_settings.font = Font_Title;
-    text_settings.line_spacing = 10;
-    text_settings.kerning = 1;
-    title_id = text_create("Backwards\nChess", 4, 102, Layer_Board, text_settings, -1.0f);
+    TextSettings title_settings;
+    title_settings.font = Font_Title;
+    title_settings.line_spacing = 10;
+    title_settings.kerning = 1;
+    title_id = text_create("Backwards\nChess", 4, 102, Layer_Board, title_settings, -1.0f);
 
     top_bar_id = sprite_create(&square_tex2, 73, 150, Layer_HeldPiece, 12.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f);
     bot_bar_id = sprite_create(&square_tex2, 73, -2, Layer_HeldPiece, 12.0f, 3.0f, 0.0f, 0.0f, 0.0f, 0.0f);
@@ -30,6 +31,11 @@ void title_init()
     fade_id = sprite_create(&square_tex2, 70, 80, Layer_HeldPiece, 12.0f, 12.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
     piece_id = sprite_create(&knight_tex, piece_x_start, piece_y, Layer_PlacedPiece, 2.0f, 2.0f, 25.0f);
+
+    TextSettings text_settings;
+    text_settings.font = Font_Default;
+    text_settings.align = Align_Center;
+    text_id = text_create("Click to start", 80, 40, Layer_Board, text_settings, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 float title_char_w = 1.0f;
@@ -52,12 +58,21 @@ const float flash_down_time = 0.3f;
 const float piece_start_time = animate_start_time + total_title_anim_time + 0.2f;
 const float piece_move_time = 0.2f;
 
-bool animate_title = true;
+const float text_start_time = piece_start_time + piece_move_time;
+const float text_flash_time = 0.8f;
+bool text_on = false;
+float text_timer = text_flash_time;
+
 const int16 s16_one = 1;
+float last_time_s = 0.0f;
 
 void title_update()
 {
     float time_s = SDL_GetTicks64() / 1000.0f;
+    float delta_time_s = time_s - last_time_s;
+
+    if (g_mouse_down)
+        start_game();
 
     if (time_s > fade_start_time && time_s <= fade_start_time + fade_in_time)
     {
@@ -102,9 +117,31 @@ void title_update()
         int16 x = ((time_s - piece_start_time) / piece_move_time) * (piece_x_end - piece_x_start) + piece_x_start;
         sprite_set_pos(piece_id, x, piece_y);
     }
+
+    if (time_s > text_start_time)
+    {
+        text_timer -= delta_time_s;
+        if (text_timer <= 0.0f)
+        {
+            text_on = !text_on;
+            if (text_on)
+                text_set_alpha(text_id, 1.0f);
+            else
+                text_set_alpha(text_id, 0.0f);
+
+            text_timer = text_flash_time;
+        }
+    }
+
+    last_time_s = time_s;
 }
 
 void title_cleanup()
 {
-
+    text_delete(title_id);
+    sprite_delete(top_bar_id);
+    sprite_delete(bot_bar_id);
+    sprite_delete(fade_id);
+    sprite_delete(piece_id);
+    text_delete(text_id);
 }

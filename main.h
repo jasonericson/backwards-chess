@@ -28,3 +28,5 @@ enum SpriteLayer
 };
 
 void cursor_set(bool hand);
+
+void start_game();

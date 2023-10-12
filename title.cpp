@@ -14,8 +14,8 @@ uint32 piece_id;
 uint32 text_id;
 
 const int16 piece_x_start = -22;
-const int16 piece_x_end = 98;
-const int16 piece_y = 68;
+const int16 piece_x_end = 96;
+const int16 piece_y = 66;
 
 void title_init()
 {

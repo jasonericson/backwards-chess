@@ -90,8 +90,7 @@ uint32 preview_sprite;
 
 bool player_white = true;
 
-uint32 white_message_id = 0;
-uint32 black_message_id = 0;
+uint32 message_id = 0;
 enum CheckState
 {
     CS_None,
@@ -987,8 +986,6 @@ bool any_safe_moves(bool white)
 void check_for_check(bool white)
 {
     CheckState* check_state = white ? &white_check_state : &black_check_state;
-    uint32* message_id = white ? &white_message_id : &black_message_id;
-    short message_x = white ? 40 : 120;
     float r = white ? 1.0f : 0.0f;
     float g = white ? 1.0f : 0.0f;
     float b = white ? 1.0f : 0.0f;
@@ -1001,9 +998,9 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_CheckMate)
         {
-            if (*message_id != 0)
-                text_delete(*message_id);
-            *message_id = text_create("Checkmate!", message_x, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
+            if (message_id != 0)
+                text_delete(message_id);
+            message_id = text_create("Checkmate!", 80, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_CheckMate;
         }
@@ -1012,9 +1009,9 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_Check)
         {
-            if (*message_id != 0)
-                text_delete(*message_id);
-            *message_id = text_create("Check", message_x, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
+            if (message_id != 0)
+                text_delete(message_id);
+            message_id = text_create("Check", 80, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_Check;
         }
@@ -1023,9 +1020,9 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_StaleMate)
         {
-            if (*message_id != 0)
-                text_delete(*message_id);
-            *message_id = text_create("Stalemate", message_x, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
+            if (message_id != 0)
+                text_delete(message_id);
+            message_id = text_create("Stalemate", 80, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
 
             *check_state = CS_StaleMate;
         }
@@ -1034,9 +1031,9 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_None)
         {
-            if (*message_id != 0)
-                text_delete(*message_id);
-            *message_id = 0;
+            if (message_id != 0)
+                text_delete(message_id);
+            message_id = 0;
 
             *check_state = CS_None;
         }

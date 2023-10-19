@@ -14,7 +14,7 @@ enum SpriteMapId : uint16
 struct Texture
 {
     SpriteMapId map_id;
-    int16 width, height;
+    uint16 width, height;
     uint16 u1, u2, v1, v2;
 };
 

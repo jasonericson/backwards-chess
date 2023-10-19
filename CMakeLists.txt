@@ -22,6 +22,7 @@ add_executable(BackwardsChess
 set(DATA_FILES
     "pieces.png"
     "font.png"
+    "font.fnt"
     "title_font.png"
 )
 

@@ -130,7 +130,7 @@ void setup_panel()
     piece_buttons[Piece_King - 1].count[0] = 1;
     piece_buttons[Piece_King - 1].count[1] = 1;
 
-    const short text_x = piece_panel_x + 14 - 1;
+    const short text_x = piece_panel_x + 14 + 1;
 
     for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
     {

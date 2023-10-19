@@ -2,6 +2,8 @@
 
 #include "main.h"
 
+#include "sprite.h"
+
 enum TextAlign
 {
     Align_Left,
@@ -15,12 +17,24 @@ enum Font : uint16
     Font_Title = 1,
 };
 
+struct FontSettings
+{
+    uint16 line_height, base;
+};
+
 struct TextSettings
 {
     Font font = Font_Default;
     TextAlign align = Align_Left;
     int16 kerning = 0;
     int16 line_spacing = 1;
+    float scale = 1.0f;
+};
+
+struct CharSettings
+{
+    Texture tex;
+    int16 x_offset, y_offset, x_advance;
 };
 
 void text_init();

@@ -35,7 +35,7 @@ void title_init()
     TextSettings text_settings;
     text_settings.font = Font_Default;
     text_settings.align = Align_Center;
-    text_id = text_create("Click to start", 80, 38, Layer_Board, text_settings, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+    text_id = text_create("Click to Start", 80, 38, Layer_Board, text_settings, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 float title_char_w = 1.0f;

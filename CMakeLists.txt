@@ -24,6 +24,7 @@ set(DATA_FILES
     "font.png"
     "font.fnt"
     "title_font.png"
+    "title_font.fnt"
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")

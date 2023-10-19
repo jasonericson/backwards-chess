@@ -5,7 +5,6 @@
 #include <string>
 
 const uint16 TEXT_MAX = 128;
-const uint16 NUM_FONTS = 2;
 struct TextInstance
 {
     uint32 id, sprite_id_start, sprite_id_end;
@@ -23,140 +22,133 @@ struct TextArray
     uint16 count;
 } texts;
 
+struct FontImportSettings
+{
+    char file[16];
+    SpriteMapId map_id;
+};
+
 CharSettings characters[NUM_FONTS][256];
 FontSettings fonts[NUM_FONTS];
+FontImportSettings font_import_settings[NUM_FONTS] = { { "font.fnt", MapId_Font }, { "title_font.fnt", MapId_FontTitle } };
 
 void text_init()
 {
-    FILE* fp = fopen("font.fnt", "r");
-    if (fp == NULL)
+    for (uint16 f_idx = 0; f_idx < NUM_FONTS; ++f_idx)
     {
-        printf("Error: could not open file 'font.fnt'\n");
-    }
-
-    char line[256];
-    while (fgets(line, 256, fp))
-    {
-        char tag[16];
-        uint16 i = 0;
-        uint16 j;
-        for (j = 0; line[i] != ' '; ++i, ++j)
+        FILE* fp = fopen(font_import_settings[f_idx].file, "r");
+        if (fp == NULL)
         {
-            tag[j] = line[i];
+            printf("Error: could not open file 'font.fnt'\n");
         }
-        tag[j] = 0;
 
-        if (strcmp(tag, "char") != 0 && strcmp(tag, "common") != 0)
-            continue;
-
-        char c;
-        uint16 x, y, w, h;
-        CharSettings cs;
-
-        while (true)
+        char line[256];
+        while (fgets(line, 256, fp))
         {
-            while (line[i] == ' ')
-                ++i;
-
-            char key[16];
-            for (j = 0; line[i] != ' ' && line[i] != '='; ++i, ++j)
+            char tag[16];
+            uint16 i = 0;
+            uint16 j;
+            for (j = 0; line[i] != ' '; ++i, ++j)
             {
-                key[j] = line[i];
+                tag[j] = line[i];
             }
-            key[j] = 0;
+            tag[j] = 0;
 
-            while (line[i] == ' ' || line[i] == '=')
-                ++i;
+            if (strcmp(tag, "char") != 0 && strcmp(tag, "common") != 0)
+                continue;
 
-            char val[16];
-            for (j = 0; line[i] != ' ' && line[i] != '\0' && line[i] != '\n'; ++i, ++j)
+            char c;
+            uint16 x, y, w, h;
+            CharSettings cs;
+
+            while (true)
             {
-                val[j] = line[i];
+                while (line[i] == ' ')
+                    ++i;
+
+                char key[16];
+                for (j = 0; line[i] != ' ' && line[i] != '='; ++i, ++j)
+                {
+                    key[j] = line[i];
+                }
+                key[j] = 0;
+
+                while (line[i] == ' ' || line[i] == '=')
+                    ++i;
+
+                char val[16];
+                for (j = 0; line[i] != ' ' && line[i] != '\0' && line[i] != '\n'; ++i, ++j)
+                {
+                    val[j] = line[i];
+                }
+                val[j] = 0;
+
+                if (strcmp(tag, "char") == 0)
+                {
+                    if (strcmp(key, "id") == 0)
+                    {
+                        c = atoi(val);
+                    }
+                    else if (strcmp(key, "x") == 0)
+                    {
+                        x = atoi(val);
+                    }
+                    else if (strcmp(key, "y") == 0)
+                    {
+                        y = atoi(val);
+                    }
+                    else if (strcmp(key, "width") == 0)
+                    {
+                        w = atoi(val);
+                    }
+                    else if (strcmp(key, "height") == 0)
+                    {
+                        h = atoi(val);
+                    }
+                    else if (strcmp(key, "xoffset") == 0)
+                    {
+                        cs.x_offset = atoi(val);
+                    }
+                    else if (strcmp(key, "yoffset") == 0)
+                    {
+                        cs.y_offset = atoi(val);
+                    }
+                    else if (strcmp(key, "xadvance") == 0)
+                    {
+                        cs.x_advance = atoi(val);
+                    }
+                }
+                else if (strcmp(tag, "common") == 0)
+                {
+                    if (strcmp(key, "lineHeight") == 0)
+                    {
+                        fonts[f_idx].line_height = atoi(val);
+                    }
+                    else if (strcmp(key, "base") == 0)
+                    {
+                        fonts[f_idx].base = atoi(val);
+                    }
+                }
+
+                while (line[i] == ' ')
+                    ++i;
+
+                if (line[i] == '\0' || line[i] == '\n')
+                {
+                    break;
+                }
             }
-            val[j] = 0;
 
             if (strcmp(tag, "char") == 0)
             {
-                if (strcmp(key, "id") == 0)
-                {
-                    c = atoi(val);
-                }
-                else if (strcmp(key, "x") == 0)
-                {
-                    x = atoi(val);
-                }
-                else if (strcmp(key, "y") == 0)
-                {
-                    y = atoi(val);
-                }
-                else if (strcmp(key, "width") == 0)
-                {
-                    w = atoi(val);
-                }
-                else if (strcmp(key, "height") == 0)
-                {
-                    h = atoi(val);
-                }
-                else if (strcmp(key, "xoffset") == 0)
-                {
-                    cs.x_offset = atoi(val);
-                }
-                else if (strcmp(key, "yoffset") == 0)
-                {
-                    cs.y_offset = atoi(val);
-                }
-                else if (strcmp(key, "xadvance") == 0)
-                {
-                    cs.x_advance = atoi(val);
-                }
+                cs.tex = { font_import_settings[f_idx].map_id, w, h, x, (uint16)(x + w), y, (uint16)(y + h) };
+                characters[f_idx][c] = cs;
             }
-            else if (strcmp(tag, "common") == 0)
-            {
-                if (strcmp(key, "lineHeight") == 0)
-                {
-                    fonts[0].line_height = atoi(val);
-                }
-                else if (strcmp(key, "base") == 0)
-                {
-                    fonts[0].base = atoi(val);
-                }
-            }
-
-            while (line[i] == ' ')
-                ++i;
-
-            if (line[i] == '\0' || line[i] == '\n')
-            {
-                break;
-            }
-        }
-
-        if (strcmp(tag, "char") == 0)
-        {
-            cs.tex = { MapId_Font, w, h, x, (uint16)(x + w), y, (uint16)(y + h) };
-            characters[Font_Default][c] = cs;
         }
     }
 
     text_next_id = 1;
     texts.count = 0;
-
-    // title font
-    characters[Font_Title][' '] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 63, 64, 63, 64 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['B'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5),  0, 11,  0, 17 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['C'] = {{ MapId_FontTitle, (int16)(12 * 1.5), (int16)(17 * 1.5),  0, 12, 36, 53 }, 0, 0, (int16)(12 * 1.5) };
-    characters[Font_Title]['a'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 12, 23,  0, 17 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['c'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 24, 35,  0, 17 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['d'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 26, 37, 18, 35 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['e'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 25, 36, 36, 53 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['h'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 13, 24, 36, 53 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['k'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 36, 47,  0, 17 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['r'] = {{ MapId_FontTitle, (int16)(11 * 1.5), (int16)(17 * 1.5), 14, 25, 18, 35 }, 0, 0, (int16)(11 * 1.5) };
-    characters[Font_Title]['s'] = {{ MapId_FontTitle, (int16)( 9 * 1.5), (int16)(17 * 1.5), 38, 47, 18, 35 }, 0, 0, (int16)( 9 * 1.5) };
-    characters[Font_Title]['w'] = {{ MapId_FontTitle, (int16)(13 * 1.5), (int16)(17 * 1.5),  0, 13, 18, 35 }, 0, 0, (int16)(13 * 1.5) };
-
-    fonts[1].line_height = 17;
-    fonts[1].base = 17;
 }
 
 uint32 text_create(char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)
@@ -203,11 +195,14 @@ uint32 text_create(char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSe
         while (*next_char != 0 && *next_char != '\n')
         {
             CharSettings* cs = &characters[settings.font][*next_char];
-            curr_id = sprite_create(&cs->tex, next_x + cs->x_offset, next_y + (fonts[settings.font].base - cs->tex.height) - cs->y_offset, depth_layer, w, h, 0.0f, r, g, b, a);
+            uint16 x_offset = cs->x_offset * settings.scale;
+            uint16 y_offset = ((fonts[settings.font].base - cs->tex.height) - cs->y_offset) * settings.scale;
+            curr_id = sprite_create(&cs->tex, next_x + x_offset, next_y + y_offset, depth_layer, w * settings.scale, h * settings.scale, 0.0f, r, g, b, a);
             if (start_id == 0)
                 start_id = curr_id;
 
-            next_x += cs->x_advance + settings.kerning;
+            uint16 next_x_add = cs->x_advance * settings.scale + settings.kerning;
+            next_x += next_x_add;
             ++next_char;
         }
     }
@@ -386,7 +381,7 @@ void text_set_char_scale(uint32 id, uint16 char_index, float w, float h)
 
             uint32 sprite_id = t->sprite_id_start + char_index;
             SDL_assert(sprite_id <= t->sprite_id_end);
-            sprite_set_scale(sprite_id, t->w, t->h);
+            sprite_set_scale(sprite_id, t->w * t->settings.scale, t->h * t->settings.scale);
 
             break;
         }

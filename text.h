@@ -15,6 +15,7 @@ enum Font : uint16
 {
     Font_Default = 0,
     Font_Title = 1,
+    NUM_FONTS,
 };
 
 struct FontSettings

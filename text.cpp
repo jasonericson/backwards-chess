@@ -207,20 +207,13 @@ uint32 text_create(char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSe
         }
     }
 
-    if (curr_id != 0)
-    {
-        end_id = curr_id;
-        uint32 this_id = text_next_id;
-        texts.data[texts.count] = { this_id, start_id, end_id, settings, x, y, w, h, depth_layer, r, g, b, a };
-        ++texts.count;
-        ++text_next_id;
+    end_id = curr_id;
+    uint32 this_id = text_next_id;
+    texts.data[texts.count] = { this_id, start_id, end_id, settings, x, y, w, h, depth_layer, r, g, b, a };
+    ++texts.count;
+    ++text_next_id;
 
-        return this_id;
-    }
-    else
-    {
-        return 0;
-    }
+    return this_id;
 }
 
 uint32 text_create(const char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSettings settings, float w, float h, float r, float g, float b, float a)

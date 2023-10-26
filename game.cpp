@@ -91,6 +91,8 @@ uint32 preview_sprite;
 bool player_white = true;
 
 uint32 message_id = 0;
+uint32 turn_text_id = 0;
+
 enum CheckState
 {
     CS_None,
@@ -101,6 +103,7 @@ enum CheckState
 CheckState white_check_state;
 CheckState black_check_state;
 bool in_check = false;
+bool game_over = false;
 
 void setup_panel()
 {
@@ -998,20 +1001,30 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_CheckMate)
         {
-            if (message_id != 0)
-                text_delete(message_id);
-            message_id = text_create("Checkmate!", 80, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
+            text_change(message_id, "");
+
+            if (white)
+            {
+                text_change(turn_text_id, "Black Wins!");
+            }
+            else
+            {
+                text_change(turn_text_id, "White Wins!");
+            }
+            
+            text_set_color(turn_text_id, 1.0f - r, 1.0f - g, 1.0f - b);
 
             *check_state = CS_CheckMate;
+
+            game_over = true;
         }
     }
     else if (now_in_check && check_escapable)
     {
         if (*check_state != CS_Check)
         {
-            if (message_id != 0)
-                text_delete(message_id);
-            message_id = text_create("Check", 80, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
+            text_change(message_id, "Check!");
+            text_set_color(message_id, r, g, b);
 
             *check_state = CS_Check;
         }
@@ -1020,9 +1033,8 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_StaleMate)
         {
-            if (message_id != 0)
-                text_delete(message_id);
-            message_id = text_create("Stalemate", 80, 20, Layer_Board, text_settings, 1.0f, 1.0f, r, g, b);
+            text_change(message_id, "Stalemate");
+            text_set_color(message_id, r, g, b);
 
             *check_state = CS_StaleMate;
         }
@@ -1031,9 +1043,7 @@ void check_for_check(bool white)
     {
         if (*check_state != CS_None)
         {
-            if (message_id != 0)
-                text_delete(message_id);
-            message_id = 0;
+            text_change(message_id, "");
 
             *check_state = CS_None;
         }
@@ -1470,6 +1480,9 @@ uint16 turn = 0;
 bool new_turn = true;
 bool turn_move = false;
 
+uint16 white_wins = 0;
+uint16 black_wins = 0;
+
 void set_panel_button_enabled(PieceType piece_type, bool enabled)
 {
     ClickySquare* sq = &clicky_squares[piece_type - 1];
@@ -1537,40 +1550,88 @@ void game_init()
     held_piece.type = Piece_None;
     held_sprite = 0;
     preview_sprite = 0;
+
+    TextSettings text_settings;
+    text_settings.align = Align_Center;
+    message_id = text_create("", 80, 8, Layer_Board, text_settings);
+
+    turn_text_id = text_create("", 80, 23, Layer_Board, text_settings);
 }
 
 void game_update()
 {
+    if (game_over)
+        return;
+
     if (new_turn)
     {
         if (turn == 0)
         {
+            // Black: Place king
             for (PieceType p = Piece_Pawn; p < Piece_King; p = (PieceType)(p + 1))
             {
                 set_panel_button_enabled(p, false);
             }
+
+            text_change(turn_text_id, "White: Place");
+            text_set_color(turn_text_id, 1.0f, 1.0f, 1.0f);
         }
         else if (turn == 1)
         {
+            // White: Place king
             switch_panel_color(false);
+
+            text_change(turn_text_id, "Black: Place");
+            text_set_color(turn_text_id, 0.0f, 0.0f, 0.0f);
         }
         else
         {
             uint16 step = (turn - 1) % 4;
             if (step == 0 || step == 2)
             {
+                // Move
                 turn_move = true;
                 for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
                 {
                     set_panel_button_enabled(p, false);
                 }
 
-                switch_panel_color(step == 0);
+                if (step == 0)
+                {
+                    // White
+                    switch_panel_color(true);
+
+                    text_change(turn_text_id, "White: Move");
+                    text_set_color(turn_text_id, 1.0f, 1.0f, 1.0f);
+                }
+                else
+                {
+                    // Black
+                    switch_panel_color(false);
+
+                    text_change(turn_text_id, "Black: Move");
+                    text_set_color(turn_text_id, 0.0f, 0.0f, 0.0f);
+                }
             }
             else
             {
-                if (turn == 2)
-                    switch_panel_color(step == 1);
+                // Place
+                if (step == 1)
+                {
+                    // White
+                    switch_panel_color(true);
+
+                    text_change(turn_text_id, "White: Place");
+                    text_set_color(turn_text_id, 1.0f, 1.0f, 1.0f);
+                }
+                else
+                {
+                    // Black
+                    switch_panel_color(false);
+
+                    text_change(turn_text_id, "Black: Place");
+                    text_set_color(turn_text_id, 0.0f, 0.0f, 0.0f);
+                }
 
                 turn_move = false;
                 for (PieceType p = Piece_Pawn; p <= Piece_King; p = (PieceType)(p + 1))
@@ -1686,7 +1747,8 @@ void game_update()
                                 held_sprite = 0;
 
                                 check_for_check(true);
-                                check_for_check(false);
+                                if (!game_over)
+                                    check_for_check(false);
 
                                 held_last_col = -1;
                                 held_last_row = -1;

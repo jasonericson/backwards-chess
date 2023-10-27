@@ -175,7 +175,7 @@ uint32 text_create(char* text, int16 x, int16 y, SpriteLayer depth_layer, TextSe
         // walk through current row and find total width (for center or right align) and tallest height (for y pos)
         while (*next_char_in_row != 0 && *next_char_in_row != '\n')
         {
-            total_width += characters[settings.font][*next_char_in_row].x_advance;
+            total_width += characters[settings.font][*next_char_in_row].x_advance * settings.scale;
             ++next_char_in_row;
         }
 
@@ -282,7 +282,7 @@ void text_change(uint32 id, char* text)
                 // walk through current row and find total width (for center or right align) and tallest height (for y pos)
                 while (*next_char_in_row != 0 && *next_char_in_row != '\n')
                 {
-                    total_width += characters[t->settings.font][*next_char_in_row].x_advance;
+                    total_width += characters[t->settings.font][*next_char_in_row].x_advance * t->settings.scale;
                     ++next_char_in_row;
                 }
 
@@ -302,12 +302,13 @@ void text_change(uint32 id, char* text)
                 while (*next_char != 0 && *next_char != '\n')
                 {
                     CharSettings* cs = &characters[t->settings.font][*next_char];
-
-                    curr_id = sprite_create(&cs->tex, next_x + cs->x_offset, next_y + (fonts[t->settings.font].base - cs->tex.height) - cs->y_offset, t->depth_layer, t->w, t->h, 0.0f, t->r, t->g, t->b, t->a);
+                    uint16 x_offset = cs->x_offset * t->settings.scale;
+                    uint16 y_offset = ((fonts[t->settings.font].base - cs->tex.height) - cs->y_offset) * t->settings.scale;
+                    curr_id = sprite_create(&cs->tex, next_x + x_offset, next_y + y_offset, t->depth_layer, t->w * t->settings.scale, t->h * t->settings.scale, 0.0f, t->r, t->g, t->b, t->a);
                     if (t->sprite_id_start == 0)
                         t->sprite_id_start = curr_id;
 
-                    next_x += cs->x_advance + t->settings.kerning;
+                    next_x += cs->x_advance * t->settings.scale + t->settings.kerning;
                     ++next_char;
                 }
             }

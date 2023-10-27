@@ -90,8 +90,13 @@ uint32 preview_sprite;
 
 bool player_white = true;
 
+uint16 white_wins = 0;
+uint16 black_wins = 0;
+
 uint32 message_id = 0;
 uint32 turn_text_id = 0;
+uint32 white_wins_text_id = 0;
+uint32 black_wins_text_id = 0;
 
 enum CheckState
 {
@@ -1006,10 +1011,18 @@ void check_for_check(bool white)
             if (white)
             {
                 text_change(turn_text_id, "Black Wins!");
+                ++black_wins;
+                char black_wins_str[4];
+                SDL_snprintf(black_wins_str, 4, "B:%d", black_wins);
+                text_change(black_wins_text_id, black_wins_str);
             }
             else
             {
                 text_change(turn_text_id, "White Wins!");
+                ++white_wins;
+                char white_wins_str[4];
+                SDL_snprintf(white_wins_str, 4, "W:%d", white_wins);
+                text_change(white_wins_text_id, white_wins_str);
             }
             
             text_set_color(turn_text_id, 1.0f - r, 1.0f - g, 1.0f - b);
@@ -1480,9 +1493,6 @@ uint16 turn = 0;
 bool new_turn = true;
 bool turn_move = false;
 
-uint16 white_wins = 0;
-uint16 black_wins = 0;
-
 void set_panel_button_enabled(PieceType piece_type, bool enabled)
 {
     ClickySquare* sq = &clicky_squares[piece_type - 1];
@@ -1556,6 +1566,11 @@ void game_init()
     message_id = text_create("", 80, 8, Layer_Board, text_settings);
 
     turn_text_id = text_create("", 80, 23, Layer_Board, text_settings);
+
+    TextSettings wins_text_settings;
+    wins_text_settings.scale = 0.75f;
+    white_wins_text_id = text_create("W:0", 3, 11, Layer_Board, wins_text_settings, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+    black_wins_text_id = text_create("B:0", 3, 3, Layer_Board, wins_text_settings, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void game_update()
